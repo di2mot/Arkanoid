@@ -4,8 +4,8 @@ import time
 import sys
 
 
-hight = 20       # количество строк
-width = 100      # шарина, т.е. сколько символов в строке
+hight = 15       # количество строк
+width = 70      # шарина, т.е. сколько символов в строке
 
 ''' Устанавливаем размер игрового поля'''
 
@@ -84,6 +84,7 @@ def timed_input(status, timeout=0.5):
 
 
 
+
 def move(field, status):
 
     '''
@@ -95,11 +96,12 @@ def move(field, status):
     border_x = 0  # ограничение по х
     border_y = 4  # ограничение по у
 
+    dino = {10: '/', 11: '#', 12: '@', 13: '\\', 14: '-', 15: '=', 16: '|'}
 
     for y in range(0, len(field)):
         tmp = []
+        string = ''
 
-        dino = {10: '/', 11: '#',  12: '@', 13: '\\', 14: '-', 15: '=', 16: '|'}
 
         for x in range(0, len(field[y])):
 
@@ -109,27 +111,35 @@ def move(field, status):
             if status[0] == 'run':
                 if field[y][x] in dino:
                     tmp.append(dino[field[y][x]])
+                    string += dino[field[y][x]]
 
             elif status[0] == 'up':
-                if field[y-1][x] in dino:
-                    tmp.append(dino[field[y-1][x]])
-                    field[y - 1][x] = 0
+                if field[y+1][x] in dino:
+                    tmp.append(dino[field[y+1][x]])
+                    string += dino[field[y+1][x]]
+                    field[y][x] = 1
+                    field[y + 1][x] = 0
+
 
 
 
             if field[y][x] == 0:
                 tmp.append('.')
+                string += '.'
 
             elif field[y][x] == 1:
                 tmp.append('█')
+                string += '█'
                 field[y][x] = 0
                 field[y][x-1] = 1
 
+        # status[0] = 'run'
 
 
 
 
-        print(*tmp)
+        # print(*tmp)
+        print(string)
     status[0] = 'run'
 
 
