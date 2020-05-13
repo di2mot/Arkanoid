@@ -5,7 +5,7 @@ import sys
 
 
 hight = 15       # количество строк
-width = 70      # шарина, т.е. сколько символов в строке
+width = 30      # шарина, т.е. сколько символов в строке
 
 ''' Устанавливаем размер игрового поля'''
 
@@ -17,7 +17,19 @@ def clear():
 # Цикл
 def loop(hight, width):
 
-    status = ['run', 1]
+    '''
+
+    :param hight:  - высота игрового полоя в символах
+    :param width:  - ширина игрового поля в символах
+    :return: ничего, просто выводит на экран
+    '''
+
+    '''
+     status = ['run', 1] # хранит данные о игровых событиях:
+     'run' / 'up' - бежит или прыгает
+     0 - состояние прыжка, бывает 1, 2, 3, по сути прыжок, запис, опутсился
+    '''
+    status = ['run', 0] # хранит данные о игровых событиях
 
     # Поле
     field = [[ 0 * j for j in range(width)] for i in range(hight)]
@@ -81,6 +93,9 @@ def timed_input(status, timeout=0.5):
             if ord(c) == 32:
                 echo()
                 status[0] = 'up'
+            if ord(c) == 80:
+                echo()
+                status[0] = 'print'
 
 
 
@@ -114,11 +129,21 @@ def move(field, status):
                     string += dino[field[y][x]]
 
             elif status[0] == 'up':
-                if field[y+1][x] in dino:
-                    tmp.append(dino[field[y+1][x]])
-                    string += dino[field[y+1][x]]
-                    field[y][x] = 1
-                    field[y + 1][x] = 0
+                if y + 1 <= len(field)-1:
+                    # print(y+1, len(field))
+
+                    if field[y + 1][x] in dino:
+                        tmp.append(dino[field[y + 1][x]])
+                        string += dino[field[y + 1][x]]
+                        field[y][x] = 1
+                        field[y + 1][x] = 0
+
+            # debag tool - press 'P' - 'Shift + p'
+            elif status[0] == 'print':
+                os.system("mode con cols=300 lines=100")
+                for x in field:
+                    print(x)
+                time.sleep(15)
 
 
 
@@ -134,13 +159,33 @@ def move(field, status):
                 field[y][x-1] = 1
 
         # status[0] = 'run'
-
-
-
-
         # print(*tmp)
+
         print(string)
-    status[0] = 'run'
+
+    if status[1] != 1:
+        status[1] = status[1] - 1
+
+    if status[1] == 0:
+        status[0] = 'run'
+
+def render(field, type, let, status):
+
+    if type == 'DINO':
+
+        if status == 'run':
+            pass
+
+        elif status == 'up':
+
+            for line in DINO:
+                line[0] = line[0] - 1
+                field[DINO[0][0]][DINO[0][1]]
+
+    if type == 'LET':
+        pass
+
+    pass
 
 
 def add_let(field):
@@ -164,6 +209,11 @@ def add_Dino(field):
 
 10: '/', 11: '#',  12: '@', 13: '\\', 14: '-', 15: '=', 16: '||'
 
+Что нужно сделать:
+ - автогенерацию динозёбра
+ - автоматически создавать список с координатами каждой точки
+
+
     '''
 
     field[hight - 1][2] = 10  # устанавливаем Dino
@@ -171,26 +221,35 @@ def add_Dino(field):
     field[hight - 1][4] = 16  # устанавливаем Dino
     field[hight - 1][5] = 16  # устанавливаем Dino
 
-    field[hight - 2][2] = 10  # устанавливаем Dino
-    field[hight - 2][3] = 10  # устанавливаем Dino
-    field[hight - 2][4] = 13  # устанавливаем Dino
-    field[hight - 2][5] = 13  # устанавливаем Dino
+    # field[hight - 2][2] = 10  # устанавливаем Dino
+    # field[hight - 2][3] = 10  # устанавливаем Dino
+    # field[hight - 2][4] = 13  # устанавливаем Dino
+    # field[hight - 2][5] = 13  # устанавливаем Dino
+    #
+    # field[hight - 3][2] = 10  # устанавливаем Dino
+    # field[hight - 3][3] = 11  # устанавливаем Dino
+    # field[hight - 3][4] = 15  # устанавливаем Dino
+    # field[hight - 3][5] = 15  # устанавливаем Dino
+    #
+    # field[hight - 4][2] = 10  # устанавливаем Dino
+    # field[hight - 4][3] = 11  # устанавливаем Dino
+    # field[hight - 4][4] = 14  # устанавливаем Dino
+    # field[hight - 4][5] = 10  # устанавливаем Dino
+    #
+    # field[hight - 5][2] = 10  # устанавливаем Dino
+    # field[hight - 5][3] = 11  # устанавливаем Dino
+    # field[hight - 5][4] = 12  # устанавливаем Dino
+    # field[hight - 5][5] = 13  # устанавливаем Dino
 
-    field[hight - 3][2] = 10  # устанавливаем Dino
-    field[hight - 3][3] = 11  # устанавливаем Dino
-    field[hight - 3][4] = 15  # устанавливаем Dino
-    field[hight - 3][5] = 15  # устанавливаем Dino
+    DIN0 = [
+        [hight - 1, 2],
+        [hight - 1, 3],
+        [hight - 2, 2],
+        [hight - 2, 3],
 
-    field[hight - 4][2] = 10  # устанавливаем Dino
-    field[hight - 4][3] = 11  # устанавливаем Dino
-    field[hight - 4][4] = 14  # устанавливаем Dino
-    field[hight - 4][5] = 10  # устанавливаем Dino
+    ]
 
-    field[hight - 5][2] = 10  # устанавливаем Dino
-    field[hight - 5][3] = 11  # устанавливаем Dino
-    field[hight - 5][4] = 12  # устанавливаем Dino
-    field[hight - 5][5] = 13  # устанавливаем Dino
-
+    return DINO
 
 
 def gameEnd(fence, width):
@@ -205,6 +264,9 @@ def gameEnd(fence, width):
     input('Нажми Enter для выхода')
     sys.exit()
 
+DINO = add_Dino()
+
+LET = add_let()
 
 if __name__ == '__main__':
     loop(hight, width)
