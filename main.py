@@ -125,7 +125,6 @@ def move(field, status):
 
             if status[0] == 'run':
                 if field[y][x] in dino:
-                    tmp.append(dino[field[y][x]])
                     string += dino[field[y][x]]
 
             elif status[0] == 'up':
@@ -133,7 +132,6 @@ def move(field, status):
                     # print(y+1, len(field))
 
                     if field[y + 1][x] in dino:
-                        tmp.append(dino[field[y + 1][x]])
                         string += dino[field[y + 1][x]]
                         field[y][x] = 1
                         field[y + 1][x] = 0
@@ -178,9 +176,16 @@ def render(field, type, let, status):
 
         elif status == 'up':
 
+            # перерисовываем в field место где раньше был динозёбр на 0
             for line in DINO:
                 line[0] = line[0] - 1
                 field[DINO[0][0]][DINO[0][1]]
+
+            # а тут перепиывам уже с дино на филд
+            for line in DINO:
+                line[0] = line[0] - 1
+                field[DINO[0][0]][DINO[0][1]]
+
 
     if type == 'LET':
         pass
