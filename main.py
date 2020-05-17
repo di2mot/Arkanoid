@@ -176,6 +176,10 @@ def render(field, type, let, status):
 
         elif status[0] == 'up':
 
+            if DINO[len(DINO)-1][0] == len(field)-1:
+                pass
+
+
             # перерисовываем в field место где раньше был динозёбр на 0
             for line in DINO:
                 line[0] = line[0] - 1
