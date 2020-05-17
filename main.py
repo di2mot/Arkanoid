@@ -171,10 +171,10 @@ def render(field, type, let, status):
 
     if type == 'DINO':
 
-        if status == 'run':
+        if status[0] == 'run':
             pass
 
-        elif status == 'up':
+        elif status[0] == 'up':
 
             # перерисовываем в field место где раньше был динозёбр на 0
             for line in DINO:
@@ -186,11 +186,24 @@ def render(field, type, let, status):
                 line[0] = line[0] - 1
                 field[DINO[0][0]][DINO[0][1]]
 
+        elif status[0] == 'down':
 
-    if type == 'LET':
+            if DINO[0][0] == len(field) - 1:
+                status[0] = 'run'
+            else:
+                # перерисовываем в field место где раньше был динозёбр на 0
+                for line in DINO:
+                    line[0] = line[0] + 1
+                    field[DINO[0][0]][DINO[0][1]]
+
+                # а тут перепиывам уже с дино на филд
+                for line in DINO:
+                    line[0] = line[0] + 1
+                    field[DINO[0][0]][DINO[0][1]]
+
+
+    elif type == 'LET':
         pass
-
-    pass
 
 
 def add_let(field):
