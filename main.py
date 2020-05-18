@@ -11,12 +11,14 @@ width = 30      # шарина, т.е. сколько символов в стр
 
 os.system(f"mode con cols={width} lines={hight+1}")
 
+
 def clear():
     os.system('CLS')
 
 # Цикл
-def loop(hight, width):
 
+
+def loop(hight, width):
     '''
 
     :param hight:  - высота игрового полоя в символах
@@ -29,21 +31,19 @@ def loop(hight, width):
      'run' / 'up' - бежит или прыгает
      0 - состояние прыжка, бывает 1, 2, 3, по сути прыжок, запис, опутсился
     '''
-    status = ['run', 0] # хранит данные о игровых событиях
+    status = ['run', 0]  # хранит данные о игровых событиях
 
     # Поле
-    field = [[ 0 * j for j in range(width)] for i in range(hight)]
+    field = [[0 * j for j in range(width)] for i in range(hight)]
 
     add_let(field)      # содаём препятсвие
     add_Dino(field)     # рисум Динозёбра
 
-
     ''' Рисуем решёлки'''
     fence = '#' * width
 
-
-    colum = 0 # индекс столба
-    iter = 0 # Считаем циклы
+    colum = 0  # индекс столба
+    iter = 0  # Считаем циклы
 
     # Главный циклы
     while True:
@@ -52,8 +52,6 @@ def loop(hight, width):
         line = 5
         # огранчение по количеству символов
         colum += 1
-
-        
 
         # пока что сделал ограничение на количество циклов
         if iter == 50:
@@ -69,14 +67,12 @@ def loop(hight, width):
             iter += 1
 
             # Функция которая ожидает ввода
-            text = 'Для управления введи тречолку вверх или вниз'
+            text = 'Для управления введи стречолку вверх или вниз'
             timed_input(status)
-
 
             # Для очистки терминала
             clear()
             print(fence)
-
 
 
 # Функция которая ожидает ввод от пользователя определённое время
@@ -98,10 +94,7 @@ def timed_input(status, timeout=0.5):
                 status[0] = 'print'
 
 
-
-
 def move(field, status):
-
     '''
     :param field: - параметры игрового поля
     :param status: - сообщает о небходимом действии: 'u'p и 'run'
@@ -117,7 +110,6 @@ def move(field, status):
         tmp = []
         string = ''
 
-
         for x in range(0, len(field[y])):
 
             # if field[y][x] >= 10: # проверяем на условие проигрыша
@@ -128,7 +120,7 @@ def move(field, status):
                     string += dino[field[y][x]]
 
             elif status[0] == 'up':
-                if y + 1 <= len(field)-1:
+                if y + 1 <= len(field) - 1:
                     # print(y+1, len(field))
 
                     if field[y + 1][x] in dino:
@@ -143,9 +135,6 @@ def move(field, status):
                     print(x)
                 time.sleep(15)
 
-
-
-
             if field[y][x] == 0:
                 tmp.append('.')
                 string += '.'
@@ -154,7 +143,7 @@ def move(field, status):
                 tmp.append('█')
                 string += '█'
                 field[y][x] = 0
-                field[y][x-1] = 1
+                field[y][x - 1] = 1
 
         # status[0] = 'run'
         # print(*tmp)
@@ -177,21 +166,24 @@ def render(field, type, let, status):
         elif status[0] == 'up':
 
             '''
-            Что нужно сделать: нужно сделать проверку, что если ниижняя точка ДИНО достигла высшей точки куста + 1
-            то, дино должен зависнуть на время равно ширине куста + 1. Потом включить спуск вниз
+            Что нужно сделать: нужно сделать проверку, что если
+            ниижняя точка ДИНО достигла высшей точки куста + 1
+            то, дино должен зависнуть на время равно ширине куста + 1. 
+            Потом включить спуск вниз
             '''
-            if DINO[0][0] == len(field)-4:
+            if DINO[0][0] == len(field) - 4:
                 status[1] = status[1] - 1
                 pass
 
-
             # перерисовываем в field место где раньше был динозёбр на 0
             for line in DINO:
-                temp_value = field[line[0]][line[1]]    # сохраняем значения в данной координате
+                # сохраняем значения в данной координате
+                temp_value = field[line[0]][line[1]]
                 field[line[0]][line[1]] = 0  # меняем значение на 0
-                line[0] = line[0] - 1    # переносим значение координыт на 1 ед выше
-                field[line[0]][line[1]] = temp_value    # на новой координате ставим старое значение
-
+                # переносим значение координыт на 1 ед выше
+                line[0] = line[0] - 1
+                # на новой координате ставим старое значение
+                field[line[0]][line[1]] = temp_value
 
         elif status[0] == 'down':
 
@@ -208,7 +200,6 @@ def render(field, type, let, status):
                     line[0] = line[0] + 1
                     field[DINO[0][0]][DINO[0][1]]
 
-
     elif type == 'LET':
         pass
 
@@ -222,8 +213,8 @@ def add_let(field):
     field[hight - 3][width - 1] = 1  # устанавливаем врага
     field[hight - 3][width - 2] = 1  # устанавливаем врага
 
-def add_Dino(field):
 
+def add_Dino(field):
     '''
 ...2345
 -5 /#@\
@@ -279,15 +270,18 @@ def add_Dino(field):
 
 def gameEnd(fence, width):
 
-    for i in range(6): print('')
+    for i in range(6):
+        print('')
 
     print('Game and'.center(width))
 
-    for i in range(6): print('')
+    for i in range(6):
+        print('')
     print(fence)
 
     input('Нажми Enter для выхода')
     sys.exit()
+
 
 DINO = add_Dino()
 
@@ -295,9 +289,3 @@ LET = add_let()
 
 if __name__ == '__main__':
     loop(hight, width)
-
-
-
-
-
-
