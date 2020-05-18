@@ -187,13 +187,11 @@ def render(field, type, let, status):
 
             # перерисовываем в field место где раньше был динозёбр на 0
             for line in DINO:
-                line[0] = line[0] - 1
-                field[DINO[0][0]][DINO[0][1]]
+                temp_value = field[line[0]][line[1]]    # сохраняем значения в данной координате
+                field[line[0]][line[1]] = 0  # меняем значение на 0
+                line[0] = line[0] - 1    # переносим значение координыт на 1 ед выше
+                field[line[0]][line[1]] = temp_value    # на новой координате ставим старое значение
 
-            # а тут перепиывам уже с дино на филд
-            for line in DINO:
-                line[0] = line[0] - 1
-                field[DINO[0][0]][DINO[0][1]]
 
         elif status[0] == 'down':
 
