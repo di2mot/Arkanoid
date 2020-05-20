@@ -156,7 +156,7 @@ def move(field, status):
     if status[1] == 0:
         status[0] = 'run'
 
-def render(field, type, let, status):
+def render(field, type, status):
 
     if type == 'DINO':
 
@@ -201,7 +201,14 @@ def render(field, type, let, status):
                     field[DINO[0][0]][DINO[0][1]]
 
     elif type == 'LET':
-        pass
+        for line in LET:
+            # сохраняем значения в данной координате
+            temp_value = field[line[0]][line[1]]
+            field[line[0]][line[1]] = 0  # меняем значение на 0
+            # переносим значение координыт на 1 ед выше
+            line[1] = line[1] - 1
+            # на новой координате ставим старое значение
+            field[line[0]][line[1]] = temp_value
 
 
 def add_let(field):
