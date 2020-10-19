@@ -4,8 +4,8 @@ import time
 import sys
 
 
-hight = 15       # количество строк
-width = 30      # шарина, т.е. сколько символов в строке
+hight = 30       # количество строк
+width = 100      # шарина, т.е. сколько символов в строке
 
 ''' Устанавливаем размер игрового поля'''
 
@@ -54,8 +54,13 @@ def loop(hight, width):
         colum += 1
 
         # пока что сделал ограничение на количество циклов
-        if iter == 50:
+        if iter == width * 2:
             gameEnd(fence, width)
+
+        # когда куст достигает края экрана, рисуем новый куст
+        if iter == width:
+            add_let(field)
+
 
         else:
             move(field, status)
@@ -89,6 +94,7 @@ def timed_input(status, timeout=0.5):
             if ord(c) == 32:
                 echo()
                 status[0] = 'up'
+                status[1] = 15
             if ord(c) == 80:
                 echo()
                 status[0] = 'print'
@@ -100,11 +106,6 @@ def move(field, status):
     :param status: - сообщает о небходимом действии: 'u'p и 'run'
     :return:
     '''
-
-    border_x = 0  # ограничение по х
-    border_y = 4  # ограничение по у
-
-    dino = {10: '/', 11: '#', 12: '@', 13: '\\', 14: '-', 15: '=', 16: '|'}
 
     for y in range(0, len(field)):
         tmp = []
@@ -222,16 +223,7 @@ def add_let(field):
 
 
 def add_Dino(field):
-    '''
-...2345
--5 /#@\
--4 /#-/
--3 /#==
--2 /|\\
--1 /|\\
-
-10: '/', 11: '#',  12: '@', 13: '\\', 14: '-', 15: '=', 16: '||'
-
+'''
 Что нужно сделать:
  - автогенерацию динозёбра
  - автоматически создавать список с координатами каждой точки
@@ -239,40 +231,11 @@ def add_Dino(field):
 
     '''
 
-    field[hight - 1][2] = 10  # устанавливаем Dino
-    field[hight - 1][3] = 10
-    field[hight - 1][4] = 16  # устанавливаем Dino
-    field[hight - 1][5] = 16  # устанавливаем Dino
+    field[hight - 1][2] = 2  # устанавливаем Dino
+    field[hight - 1][3] = 2
+    field[hight - 1][4] = 2  # устанавливаем Dino
+    field[hight - 1][5] = 2  # устанавливаем Dino
 
-    # field[hight - 2][2] = 10  # устанавливаем Dino
-    # field[hight - 2][3] = 10  # устанавливаем Dino
-    # field[hight - 2][4] = 13  # устанавливаем Dino
-    # field[hight - 2][5] = 13  # устанавливаем Dino
-    #
-    # field[hight - 3][2] = 10  # устанавливаем Dino
-    # field[hight - 3][3] = 11  # устанавливаем Dino
-    # field[hight - 3][4] = 15  # устанавливаем Dino
-    # field[hight - 3][5] = 15  # устанавливаем Dino
-    #
-    # field[hight - 4][2] = 10  # устанавливаем Dino
-    # field[hight - 4][3] = 11  # устанавливаем Dino
-    # field[hight - 4][4] = 14  # устанавливаем Dino
-    # field[hight - 4][5] = 10  # устанавливаем Dino
-    #
-    # field[hight - 5][2] = 10  # устанавливаем Dino
-    # field[hight - 5][3] = 11  # устанавливаем Dino
-    # field[hight - 5][4] = 12  # устанавливаем Dino
-    # field[hight - 5][5] = 13  # устанавливаем Dino
-
-    DIN0 = [
-        [hight - 1, 2],
-        [hight - 1, 3],
-        [hight - 2, 2],
-        [hight - 2, 3],
-
-    ]
-
-    return DINO
 
 
 def gameEnd(fence, width):
@@ -290,9 +253,9 @@ def gameEnd(fence, width):
     sys.exit()
 
 
-DINO = add_Dino()
+# DINO = add_Dino()
 
-LET = add_let()
+# LET = add_let()
 
 if __name__ == '__main__':
     loop(hight, width)
