@@ -1,261 +1,113 @@
-import msvcrt
-import os
 import time
-import sys
+from msvcrt import getch
+from os import system
+from sys import stdout
 
 
-hight = 30       # количество строк
-width = 100      # шарина, т.е. сколько символов в строке
+# Size of the game field
+WIDTH = 100
+HIGHT = 20
 
-''' Устанавливаем размер игрового поля'''
+# Game point
+POINT = 0  # только цифры!
 
-os.system(f"mode con cols={width+5} lines={hight+5}")
+POINT_YX = [HIGHT - 1, WIDTH - 1]
+
+# Keymap of control
+keys = {
+    0x48: (-1, 0),
+    0x50: (1, 0),
+    0x4b: (0, -1),
+    0x4d: (0, 1), }
+'''
+0x48: 'Up' = +1, 0
+0x50: 'Down' = -1, 0
+0x4b: 'Left' = 0, -1
+0x4d: 'Right' = 0, 1
+'''
+
+PRINT_MAP = {0: '░', 1: '█'}
+
+# make game field
+field = [[POINT * j for j in range(WIDTH)] for i in range(HIGHT)]
 
 
 def clear():
-    os.system('CLS')
-
-# Цикл
+    system('CLS')
 
 
-def loop(hight, width):
-    '''
-
-    :param hight:  - высота игрового полоя в символах
-    :param width:  - ширина игрового поля в символах
-    :return: ничего, просто выводит на экран
-    '''
-
-    '''
-     status = ['run', 1] # хранит данные о игровых событиях:
-     'run' / 'up' - бежит или прыгает
-     0 - состояние прыжка, бывает 1, 2, 3, по сути прыжок, запис, опутсился
-    '''
-    status = ['run', 0]  # хранит данные о игровых событиях
-
-    # Поле
-    field = [[0 * j for j in range(width)] for i in range(hight)]
-
-    add_let(field)      # содаём препятсвие
-    add_Dino(field)     # рисум Динозёбра
-
-    ''' Рисуем решёлки'''
-    fence = '#' * width
-
-    colum = 0  # индекс столба
-    iter = 0  # Считаем циклы
-
-    # Главный циклы
-    while True:
-
-        # тут я ввёл ограничители по строкам
-        line = 5
-        # огранчение по количеству символов
-        colum += 1
-
-        # пока что сделал ограничение на количество циклов
-        if iter == width * 2:
-            gameEnd(fence, width)
-
-        # когда куст достигает края экрана, рисуем новый куст
-        if iter == width:
-            add_let(field)
-
-        else:
-            move(field, status)
-
-            # снова заборчик
-            print(fence)
-
-            # счётчи количества итераций
-            iter += 1
-
-            # Функция которая ожидает ввода
-            text = 'Для управления введи стречолку вверх или вниз'
-            timed_input(status)
-
-            # Для очистки терминала
-            clear()
-            print(fence)
+def get_coord(coord=POINT_YX) -> int:
+    Y, X = map(int, coord)
+    return Y, X
 
 
-# Функция которая ожидает ввод от пользователя определённое время
-# если пользователь ничего не ввёл за указанное время
-# то ничего не делает
-def timed_input(status, timeout=0.5):
+def print_field(start):
+    clear()
+    print(f'POINT_YX {get_coord()}')
+    for i in field:
+        # как же мне нравится это решение
+        print(''.join(PRINT_MAP[e] for e in i))
+
+    fin = time.time()
+    print('TIME: ', fin - start)
+
+
+def add_point():
+
+    y, x = get_coord()
+    # первичное размещение точки
+    field[y][x] = 1
+
+
+def timed_input(timeout=0.03):
+    # функция отвечающая за обработку нажатия клвиш
     def echo():
-        sys.stdout.flush()
+        stdout.flush()
 
     start = time.monotonic()
     while time.monotonic() - start < timeout:
+        prefix = ord(getch())
         if msvcrt.kbhit():
-            c = msvcrt.getwch()
-            if ord(c) == 32:
+            if prefix == 0xe0:
+                keycode = ord(getch())
+                symbol = keys.get(keycode, 'unexpected')
                 echo()
-                status[0] = 'up'
-                status[1] = 15
-            if ord(c) == 80:
+                move(symbol)
+                print(f'Press {symbol}')
+
+            elif prefix == 3:
                 echo()
-                status[0] = 'print'
+                exit()
 
 
-def move(field, status):
-    '''
-    :param field: - параметры игрового поля
-    :param status: - сообщает о небходимом действии: 'up' и 'run'
-    :return:
-    '''
+def move(vector):
+    Y, X = get_coord()
+    VECTOR_Y, VECTOR_X = get_coord(vector)
 
-    dino = [2]
+    if VECTOR_Y + Y <= HIGHT - 1 and VECTOR_Y + Y >= 0:
+        NEW_Y = VECTOR_Y + Y
+    else:
+        NEW_Y = Y
 
+    if VECTOR_X + X <= WIDTH - 1 and VECTOR_X + X >= 0:
+        NEW_X = VECTOR_X + X
+    else:
+        NEW_X = X
 
-    for y in range(0, len(field)-1):
-        tmp = []
-        string = ''
-
-        for x in range(0, len(field[y])):
-
-            # if field[y][x] >= 10: # проверяем на условие проигрыша
-            #     gameEnd('#'*50, 50)
-
-            if status[0] == 'run':
-                if field[y][x] in dino:
-                    string += dino[field[y][x]]
-
-            elif status[0] == 'up':
-                if y + 1 <= len(field) - 1:
-                    # print(y+1, len(field))
-
-                    if field[y + 1][x] in dino:
-                        string += dino[field[y + 1][x]]
-                        field[y][x] = 1
-                        field[y + 1][x] = 0
-
-            # debag tool - press 'P' - 'Shift + p'
-            elif status[0] == 'print':
-                os.system("mode con cols=300 lines=100")
-                for x in field:
-                    print(x)
-                time.sleep(15)
-
-            if field[y][x] == 0:
-                tmp.append('.')
-                string += '.'
-
-            elif field[y][x] == 1:
-                tmp.append('█')
-                string += '█'
-                field[y][x] = 0
-                field[y][x - 1] = 1
-
-        # status[0] = 'run'
-        # print(*tmp)
-
-        print(string)
-
-    if status[1] != 1:
-        status[1] = status[1] - 1
-
-    if status[1] == 0:
-        status[0] = 'run'
-
-def render(field, type, status):
-
-    if type == 'DINO':
-
-        if status[0] == 'run':
-            pass
-
-        elif status[0] == 'up':
-
-            '''
-            Что нужно сделать: нужно сделать проверку, что если
-            ниижняя точка ДИНО достигла высшей точки куста + 1
-            то, дино должен зависнуть на время равно ширине куста + 1. 
-            Потом включить спуск вниз
-            '''
-            if DINO[0][0] == len(field) - 4:
-                status[1] = status[1] - 1
-                pass
-
-            # перерисовываем в field место где раньше был динозёбр на 0
-            for line in DINO:
-                # сохраняем значения в данной координате
-                temp_value = field[line[0]][line[1]]
-                field[line[0]][line[1]] = 0  # меняем значение на 0
-                # переносим значение координыт на 1 ед выше
-                line[0] = line[0] - 1
-                # на новой координате ставим старое значение
-                field[line[0]][line[1]] = temp_value
-
-        elif status[0] == 'down':
-
-            if DINO[0][0] == len(field) - 1:
-                status[0] = 'run'
-            else:
-                # перерисовываем в field место где раньше был динозёбр на 0
-                for line in DINO:
-                    line[0] = line[0] + 1
-                    field[DINO[0][0]][DINO[0][1]]
-
-                # а тут перепиывам уже с дино на филд
-                for line in DINO:
-                    line[0] = line[0] + 1
-                    field[DINO[0][0]][DINO[0][1]]
-
-    elif type == 'LET':
-        for line in LET:
-            # сохраняем значения в данной координате
-            temp_value = field[line[0]][line[1]]
-            field[line[0]][line[1]] = 0  # меняем значение на 0
-            # переносим значение координыт на 1 ед выше
-            line[1] = line[1] - 1
-            # на новой координате ставим старое значение
-            field[line[0]][line[1]] = temp_value
+    field[Y][X] = 0
+    field[NEW_Y][NEW_X] = 1
+    POINT_YX[0], POINT_YX[1] = NEW_Y, NEW_X
 
 
-def add_let(field):
-    ''' Препятсвия'''
-    field[hight - 1][width - 2] = 1  # устанавливаем врага
-    field[hight - 1][width - 1] = 1  # устанавливаем врага
-    field[hight - 2][width - 1] = 1  # устанавливаем врага
-    field[hight - 2][width - 2] = 1  # устанавливаем врага
-    field[hight - 3][width - 1] = 1  # устанавливаем врага
-    field[hight - 3][width - 2] = 1  # устанавливаем врага
+def loop():
 
+    add_point()
 
-def add_Dino(field):
+    while True:
+        start = time.time()
+        print_field(start)
+        timed_input()
 
-    """
-Что нужно сделать:
- - автогенерацию динозёбра
- - автоматически создавать список с координатами каждой точки 
-    """
-
-    field[hight - 1][2] = 2  # устанавливаем Dino
-    field[hight - 1][3] = 2
-    field[hight - 1][4] = 2  # устанавливаем Dino
-    field[hight - 1][5] = 2  # устанавливаем Dino
-
-
-def gameEnd(fence, width):
-
-    for i in range(6):
-        print('')
-
-    print('Game and'.center(width))
-
-    for i in range(6):
-        print('')
-    print(fence)
-
-    input('Нажми Enter для выхода')
-    sys.exit()
-
-
-# DINO = add_Dino()
-
-# LET = add_let()
 
 if __name__ == '__main__':
-    loop(hight, width)
+    loop()
