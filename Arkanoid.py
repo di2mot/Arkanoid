@@ -27,7 +27,7 @@ keys = {
 0x4d: 'Right' = 0, 1
 '''
 
-PRINT_MAP = {0: '░', 1: '█'}
+PRINT_MAP = {0: '░', 1: '█', 2:'▢'}
 
 ROUT = [-1, 0]
 
@@ -55,10 +55,16 @@ def print_field(start_time):
     print(f'Coordinate: [y = {y}, x = {x}] Vector {ROUT}')
     print('#' * (WIDTH + 2))
 
+    ST = ''
     for line in field:
         # как же мне нравится это решение
-        print('#', ''.join(PRINT_MAP[e] for e in line), end='#\n')
+        # print('#', ''.join(PRINT_MAP[e] for e in line), end='#\n')
 
+        # работает через коннотацию строк
+        ST += '#' + ''.join(PRINT_MAP[e] for e in line) + '#\n'
+
+    # так не мерцает экран
+    stdout.write(ST)
     print('#' * (WIDTH + 2))
     fin = time.time()
     print(f'Frame time:  {fin - start_time:.5f}', "Current: %d, Peak %d" %
@@ -113,7 +119,8 @@ def timed_input(timeout=0.1):
                 echo()
                 keycode = ord(getch())
                 symbol = keys.get(keycode, 'unexpected')
-                rout_v(symbol)
+
+                rout_v(symbol)  # отвечает за отсткок
 
                 print(f'Press {symbol}')
             # Отвечает за комбинацию Ctrl + C
