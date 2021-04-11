@@ -5,14 +5,15 @@ from sys import stdout
 import tracemalloc
 
 
-# Size of the game field
+
+# Size of the game FIELD
 WIDTH = 100
 HIGHT = 20
 
 # Game point
 POINT = 0  # только цифры!
 
-POINT_YX = [HIGHT - 1, WIDTH / 2 ]
+POINT_YX = [HIGHT - 2, WIDTH / 2 ]
 
 # Keymap of control
 keys = {
@@ -27,15 +28,37 @@ keys = {
 0x4d: 'Right' = 0, 1
 '''
 
-PRINT_MAP = {0: '░', 1: '█', 2:'▢'} # {0: '░', 1: '█', 2:'▢'}
+PRINT_MAP = {
+    0: ' ',
+    1: '▢',
+    2: '■',
+    3: '-',
+    4: '|',
+} # {0: '░', 1: '█', 2:'▢', 3: '-', 4: '|',}
 
 ROUT = [-1, 1]
 
-# make game field
-field = [[POINT * j for j in range(WIDTH)] for i in range(HIGHT)]
+# make game FIELD
+FIELD = [[POINT * j for j in range(WIDTH)] for i in range(HIGHT)]
 
-def make_field() -> list:
+def make_field(FIELD):
+    '''
+    Здесь создаётся игровое поле о всеми вытекающими
+    '''
 
+    # первую и верхнюю строчку превращаем в заборчик
+    for colum in (0, HIGHT-1):
+        FIELD[colum] = [3 for j in range(WIDTH)]
+
+    # левую и правые стороны превращаем в столбики
+    for y in range(1, HIGHT-1):
+        for x in (0, WIDTH-1):
+            FIELD[y][x] = 4
+
+    # создаём блоки в которые будет бится шар
+    for y in range(1, 5):
+        for x in range(1, WIDTH-2):
+            FIELD[y][x] = 2
 
 
 def clear():
@@ -50,7 +73,7 @@ def get_coord(coord=None) -> int:
     return Y, X
 
 
-def print_field(start_time):
+def print_FIELD(start_time):
     '''
     Выводит в консоль поле
     Обновляя консоль кажды раз
@@ -58,21 +81,19 @@ def print_field(start_time):
     clear()
     x, y = get_coord()
     print(f'Coordinate: [y = {y}, x = {x}] Vector {ROUT}')
-    print('#' * (WIDTH + 2))
+    #print('#' * (WIDTH + 2))
 
-    ST = ''
-    for line in field:
+    ST = str()
+    for line in FIELD:
         # как же мне нравится это решение
         # print('#', ''.join(PRINT_MAP[e] for e in line), end='#\n')
 
         # работает через коннотацию строк
-        ST += '#' + ''.join(PRINT_MAP[e] for e in line) + '#\n'
+        ST += ''.join(PRINT_MAP[e] for e in line) + '\n'
 
     # так не мерцает экран
     stdout.write(ST)
 
-    print('#' * (WIDTH + 2))
-    #fin = time.time()
     print(f'Frame time:  {time.time() - start_time:.5f}', "Current: %d, Peak %d" %
           tracemalloc.get_traced_memory())
 
@@ -81,7 +102,7 @@ def add_point(START_POS):
 
     y, x = get_coord(START_POS)
     # первичное размещение точки
-    field[y][x] = 1
+    FIELD[y][x] = 1
 
 
 def rout_v(coord):
@@ -137,28 +158,37 @@ def timed_input(timeout=0.1):
                 pass
 
 
-def move(vector=ROUT):
+def move(ROUT):
     '''
     '''
-    Y, X = get_coord()  # нынешние координаты точки
-    # коефициент который поменяет машрут
-    VECTOR_Y, VECTOR_X = get_coord(vector)
+    Y, X = get_coord()                           # нынешние координаты точки
 
-    if VECTOR_Y + Y <= HIGHT - 1 and VECTOR_Y + Y >= 0:
-        NEW_Y = VECTOR_Y + Y
+    VECTOR_Y, VECTOR_X = get_coord(ROUT)         # коефициент который поменяет машрут
+
+    futur_y = Y + VECTOR_Y                       # будущеи координаты т. У
+    futur_x = X + VECTOR_X                       # будущеи координаты т. Х
+
+    futur_point = FIELD[futur_y][futur_x]
+
+    # проверяет на непересечение границы
+    if futur_y <= HIGHT - 2 and futur_y >= 1 and futur_point != 2:
+        NEW_Y = futur_y
     else:
         ROUT[0] = VECTOR_Y * -1
         NEW_Y = Y + ROUT[0]
+        if futur_point == 2:                     # если будущая точка блок, меняем с 2 на 0
+            FIELD[futur_y][futur_x] = 0
 
-    if VECTOR_X + X <= WIDTH - 1 and VECTOR_X + X >= 0:
-        NEW_X = VECTOR_X + X
+
+    if futur_x <= WIDTH - 2 and futur_x >= 1:
+        NEW_X = futur_x
     else:
         ROUT[1] = VECTOR_X * -1
         NEW_X = X + ROUT[1]
 
-    field[Y][X] = 0
-    field[NEW_Y][NEW_X] = 1
-    POINT_YX[0], POINT_YX[1] = NEW_Y, NEW_X
+    FIELD[Y][X] = 0                             # обнуляем прошлое положение точки
+    FIELD[NEW_Y][NEW_X] = 1                     # рисуем точку в новом месте
+    POINT_YX[0], POINT_YX[1] = NEW_Y, NEW_X     # обновляем координату точки
 
 
 def loop():
@@ -166,11 +196,12 @@ def loop():
     Главный цикл
     '''
     add_point(POINT_YX)
+    make_field(FIELD)
 
     while True:
         tracemalloc.start()
         start_time = time.time()
-        print_field(start_time)
+        print_FIELD(start_time)
         move(ROUT)
         timed_input()
 
