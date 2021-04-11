@@ -12,7 +12,7 @@ HIGHT = 20
 # Game point
 POINT = 0  # только цифры!
 
-POINT_YX = [HIGHT - 1, WIDTH - 1]
+POINT_YX = [HIGHT - 1, WIDTH / 2 ]
 
 # Keymap of control
 keys = {
@@ -27,9 +27,9 @@ keys = {
 0x4d: 'Right' = 0, 1
 '''
 
-PRINT_MAP = {0: '░', 1: '█', 2:'▢'}
+PRINT_MAP = {0: '░', 1: '█', 2:'▢'} # {0: '░', 1: '█', 2:'▢'}
 
-ROUT = [-1, 0]
+ROUT = [-1, 1]
 
 # make game field
 field = [[POINT * j for j in range(WIDTH)] for i in range(HIGHT)]
@@ -39,8 +39,10 @@ def clear():
     system('cls' if name == 'nt' else 'clear')
 
 
-def get_coord(coord=POINT_YX) -> int:
+def get_coord(coord=None) -> int:
 
+    if coord is None:
+        coord = POINT_YX
     Y, X = map(int, coord)
     return Y, X
 
@@ -65,15 +67,16 @@ def print_field(start_time):
 
     # так не мерцает экран
     stdout.write(ST)
+
     print('#' * (WIDTH + 2))
-    fin = time.time()
-    print(f'Frame time:  {fin - start_time:.5f}', "Current: %d, Peak %d" %
+    #fin = time.time()
+    print(f'Frame time:  {time.time() - start_time:.5f}', "Current: %d, Peak %d" %
           tracemalloc.get_traced_memory())
 
 
-def add_point():
+def add_point(START_POS):
 
-    y, x = get_coord()
+    y, x = get_coord(START_POS)
     # первичное размещение точки
     field[y][x] = 1
 
@@ -159,7 +162,7 @@ def loop():
     '''
     Главный цикл
     '''
-    add_point()
+    add_point(POINT_YX)
 
     while True:
         tracemalloc.start()
