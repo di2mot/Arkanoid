@@ -34,6 +34,9 @@ ROUT = [-1, 1]
 # make game field
 field = [[POINT * j for j in range(WIDTH)] for i in range(HIGHT)]
 
+def make_field() -> list:
+
+
 
 def clear():
     system('cls' if name == 'nt' else 'clear')
