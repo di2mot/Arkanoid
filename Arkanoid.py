@@ -13,7 +13,7 @@ HIGHT = 20
 # Game point
 POINT = 0  # только цифры!
 
-POINT_YX = [HIGHT - 2, WIDTH / 2 ]
+POINT_YX = [HIGHT - 3, WIDTH // 2 ]
 
 # Keymap of control
 keys = {
@@ -29,11 +29,12 @@ keys = {
 '''
 
 PRINT_MAP = {
-    0: ' ',
+    0: '░',
     1: '▢',
     2: '■',
     3: '-',
     4: '|',
+    5: '█',
 } # {0: '░', 1: '█', 2:'▢', 3: '-', 4: '|',}
 
 ROUT = [-1, 1]
@@ -59,6 +60,10 @@ def make_field(FIELD):
     for y in range(1, 5):
         for x in range(1, WIDTH-2):
             FIELD[y][x] = 2
+
+    # make platform
+    for x in range(WIDTH//2 - 3, WIDTH//2 + 2):
+        FIELD[HIGHT - 2][x] = 5
 
 
 def clear():
@@ -94,7 +99,8 @@ def print_FIELD(start_time):
     # так не мерцает экран
     stdout.write(ST)
 
-    print(f'Frame time:  {time.time() - start_time:.5f}', "Current: %d, Peak %d" %
+    finish_time = time.time()
+    print(f'Frame time:  {finish_time - start_time:.5f}', "Current: %d, Peak %d" %
           tracemalloc.get_traced_memory())
 
 
@@ -168,27 +174,28 @@ def move(ROUT):
     futur_y = Y + VECTOR_Y                       # будущеи координаты т. У
     futur_x = X + VECTOR_X                       # будущеи координаты т. Х
 
-    futur_point = FIELD[futur_y][futur_x]
 
-    # проверяет на непересечение границы
-    if futur_y <= HIGHT - 2 and futur_y >= 1 and futur_point != 2:
+    # проверяет на непересечение границы или несоприкосновение с блоками
+    # if futur_y <= HIGHT - 2 and futur_y >= 1 and futur_point not in (2, 3, 4, 5,):
+    if (FIELD[futur_y][futur_x]) not in (2, 3, 4, 5,):
         NEW_Y = futur_y
-    else:
+    else: 
         ROUT[0] = VECTOR_Y * -1
         NEW_Y = Y + ROUT[0]
-        if futur_point == 2:                     # если будущая точка блок, меняем с 2 на 0
+
+        if FIELD[futur_y][futur_x] == 2:                     # если будущая точка блок, меняем с 2 на 0
             FIELD[futur_y][futur_x] = 0
 
-
-    if futur_x <= WIDTH - 2 and futur_x >= 1:
+    #if futur_x <= WIDTH - 2 and futur_x >= 1:
+    if (FIELD[futur_y][futur_x])  not in (2, 3, 4, 5) :
         NEW_X = futur_x
     else:
         ROUT[1] = VECTOR_X * -1
         NEW_X = X + ROUT[1]
 
-    FIELD[Y][X] = 0                             # обнуляем прошлое положение точки
-    FIELD[NEW_Y][NEW_X] = 1                     # рисуем точку в новом месте
-    POINT_YX[0], POINT_YX[1] = NEW_Y, NEW_X     # обновляем координату точки
+    FIELD[Y][X] = 0                              # обнуляем прошлое положение точки
+    FIELD[NEW_Y][NEW_X] = 1                      # рисуем точку в новом месте
+    POINT_YX[0], POINT_YX[1] = NEW_Y, NEW_X      # обновляем координату точки
 
 
 def loop():
