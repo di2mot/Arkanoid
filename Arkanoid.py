@@ -5,7 +5,6 @@ from sys import stdout
 import tracemalloc
 
 
-
 # Size of the game FIELD
 WIDTH = 100
 HIGHT = 20
@@ -13,7 +12,7 @@ HIGHT = 20
 # Game point
 POINT = 0  # только цифры!
 
-POINT_YX = [HIGHT - 3, WIDTH // 2 ]
+POINT_YX = [HIGHT - 4, WIDTH // 2]
 
 # Keymap of control
 keys = {
@@ -35,12 +34,13 @@ PRINT_MAP = {
     3: '-',
     4: '|',
     5: '█',
-} # {0: '░', 1: '█', 2:'▢', 3: '-', 4: '|',}
+}  # {0: '░', 1: '█', 2:'▢', 3: '-', 4: '|',}
 
 ROUT = [-1, 1]
 
 # make game FIELD
 FIELD = [[POINT * j for j in range(WIDTH)] for i in range(HIGHT)]
+
 
 def make_field(FIELD):
     '''
@@ -48,21 +48,21 @@ def make_field(FIELD):
     '''
 
     # первую и верхнюю строчку превращаем в заборчик
-    for colum in (0, HIGHT-1):
+    for colum in (0, HIGHT - 1):
         FIELD[colum] = [3 for j in range(WIDTH)]
 
     # левую и правые стороны превращаем в столбики
-    for y in range(1, HIGHT-1):
-        for x in (0, WIDTH-1):
+    for y in range(1, HIGHT - 1):
+        for x in (0, WIDTH - 1):
             FIELD[y][x] = 4
 
     # создаём блоки в которые будет бится шар
     for y in range(1, 5):
-        for x in range(1, WIDTH-2):
+        for x in range(1, WIDTH - 1):
             FIELD[y][x] = 2
 
     # make platform
-    for x in range(WIDTH//2 - 3, WIDTH//2 + 2):
+    for x in range(WIDTH // 2 - 3, WIDTH // 2 + 2):
         FIELD[HIGHT - 2][x] = 5
 
 
@@ -84,9 +84,9 @@ def print_FIELD(start_time):
     Обновляя консоль кажды раз
     '''
     clear()
-    x, y = get_coord()
+    y, x = get_coord(POINT_YX)
     print(f'Coordinate: [y = {y}, x = {x}] Vector {ROUT}')
-    #print('#' * (WIDTH + 2))
+    # print('#' * (WIDTH + 2))
 
     ST = str()
     for line in FIELD:
@@ -167,33 +167,46 @@ def timed_input(timeout=0.1):
 def move(ROUT):
     '''
     '''
-    Y, X = get_coord()                           # нынешние координаты точки
+    Y, X = get_coord(POINT_YX)                   # нынешние координаты точки
 
-    VECTOR_Y, VECTOR_X = get_coord(ROUT)         # коефициент который поменяет машрут
+    # ROUT[0] = Y
+    # ROUT[1] = X
 
-    futur_y = Y + VECTOR_Y                       # будущеи координаты т. У
-    futur_x = X + VECTOR_X                       # будущеи координаты т. Х
+    # Проверяю соприкаснётся шар с поверхностью
+    # и по какой оси его нужно отразить
+
+    if FIELD[Y][X + ROUT[1]] in (2, 3, 4, 5,):
+
+        if FIELD[Y][X + ROUT[1]] == 2:              # проверяем где нужно удалить блок
+            FIELD[Y][X + ROUT[1]] = 0
 
 
-    # проверяет на непересечение границы или несоприкосновение с блоками
-    # if futur_y <= HIGHT - 2 and futur_y >= 1 and futur_point not in (2, 3, 4, 5,):
-    if (FIELD[futur_y][futur_x]) not in (2, 3, 4, 5,):
-        NEW_Y = futur_y
-    else: 
-        ROUT[0] = VECTOR_Y * -1
+        ROUT[1] = ROUT[1] * -1                      # меняем направление по оси х
+        NEW_X = X + ROUT[1]                         # устанавливаем новое положение х
+        NEW_Y = Y + ROUT[0]                         # новое положение у
+
+
+
+    elif FIELD[Y + ROUT[0]][X] in (2, 3, 4, 5,):
+
+        if  FIELD[Y + ROUT[0]][X] == 2:             # проверяем где нужно удалить блок
+            FIELD[Y + ROUT[0]][X] = 0
+
+        ROUT[0] = ROUT[0] * -1
         NEW_Y = Y + ROUT[0]
 
-        if FIELD[futur_y][futur_x] == 2:                     # если будущая точка блок, меняем с 2 на 0
-            FIELD[futur_y][futur_x] = 0
-
-    #if futur_x <= WIDTH - 2 and futur_x >= 1:
-    if (FIELD[futur_y][futur_x])  not in (2, 3, 4, 5) :
-        NEW_X = futur_x
-    else:
-        ROUT[1] = VECTOR_X * -1
         NEW_X = X + ROUT[1]
 
-    FIELD[Y][X] = 0                              # обнуляем прошлое положение точки
+
+
+
+    else:
+        # если нет припятсвий то летит дальше
+        NEW_Y = Y + ROUT[0]
+        NEW_X = X + ROUT[1]
+
+    # обнуляем прошлое положение точки
+    FIELD[Y][X] = 0
     FIELD[NEW_Y][NEW_X] = 1                      # рисуем точку в новом месте
     POINT_YX[0], POINT_YX[1] = NEW_Y, NEW_X      # обновляем координату точки
 
