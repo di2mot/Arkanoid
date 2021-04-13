@@ -3,7 +3,9 @@ from msvcrt import getch, kbhit
 from os import system, name
 from sys import stdout
 import tracemalloc
+import logging
 
+logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
 
 # Size of the game FIELD
 WIDTH = 100
@@ -171,33 +173,46 @@ def move(ROUT):
 
     # ROUT[0] = Y
     # ROUT[1] = X
+    logging.debug('---------------------------------------------')
+    logging.debug(f'Y = {Y}, X = {X}, ROUT = {ROUT}')
+
 
     # Проверяю соприкаснётся шар с поверхностью
     # и по какой оси его нужно отразить
 
-    if FIELD[Y][X + ROUT[1]] in (2, 3, 4, 5,):
+    if FIELD[Y + ROUT[0]][X] in (2, 3, 4, 5,):
+        logging.debug(f'if: search in Y = {Y + ROUT[0]} X = {X} : {FIELD[Y + ROUT[0]][X]}')
+
+        if  FIELD[Y + ROUT[0]][X] == 2:             # проверяем где нужно удалить блок
+            FIELD[Y + ROUT[0]][X] = 0
+            logging.debug(f'if: Delete block at Y = {Y + ROUT[0]} X = {X} : {FIELD[Y + ROUT[0]][X]}')
+
+        ROUT[0] = ROUT[0] * -1
+        NEW_Y = Y + ROUT[0]
+
+        if FIELD[NEW_Y][X + ROUT[1]] not in (3, 4):
+            NEW_X = X + ROUT[1]
+        else:
+            ROUT[1] = ROUT[1] * -1
+            NEW_X = X + ROUT[1]
+
+
+
+        logging.debug(f'elif: NEW_Y = {NEW_Y}, NEW_X = {NEW_X}')
+
+    elif FIELD[Y][X + ROUT[1]] in (2, 3, 4, 5,):
+        logging.debug(f'elif: search in Y = {Y} X = {X + ROUT[1]} : {FIELD[Y][X + ROUT[1]]}')
 
         if FIELD[Y][X + ROUT[1]] == 2:              # проверяем где нужно удалить блок
             FIELD[Y][X + ROUT[1]] = 0
+            logging.debug(f'elif: Delete block at Y = {Y}, X = {X + ROUT[1]} : {FIELD[Y][X + ROUT[1]]}')
 
 
         ROUT[1] = ROUT[1] * -1                      # меняем направление по оси х
         NEW_X = X + ROUT[1]                         # устанавливаем новое положение х
         NEW_Y = Y + ROUT[0]                         # новое положение у
 
-
-
-    elif FIELD[Y + ROUT[0]][X] in (2, 3, 4, 5,):
-
-        if  FIELD[Y + ROUT[0]][X] == 2:             # проверяем где нужно удалить блок
-            FIELD[Y + ROUT[0]][X] = 0
-
-        ROUT[0] = ROUT[0] * -1
-        NEW_Y = Y + ROUT[0]
-
-        NEW_X = X + ROUT[1]
-
-
+        logging.debug(f' if: NEW_X = {NEW_X}, NEW_Y = {NEW_Y}')
 
 
     else:
@@ -205,11 +220,15 @@ def move(ROUT):
         NEW_Y = Y + ROUT[0]
         NEW_X = X + ROUT[1]
 
+        logging.debug(f'else: NEW_X = {NEW_X}, NEW_Y = {NEW_Y}')
+
     # обнуляем прошлое положение точки
     FIELD[Y][X] = 0
     FIELD[NEW_Y][NEW_X] = 1                      # рисуем точку в новом месте
     POINT_YX[0], POINT_YX[1] = NEW_Y, NEW_X      # обновляем координату точки
 
+
+    logging.debug('---------------------------------------------')
 
 def loop():
     '''
