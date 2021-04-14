@@ -1,9 +1,12 @@
-import time
+'''
+Arkanoid version 1.0
+by Di2mot
+'''
+
+from time import perf_counter, monotonic, sleep
 from msvcrt import getch, kbhit
 from os import system, name
 from sys import stdout
-import tracemalloc
-import subprocess, platform
 
 
 # Size of the game FIELD
@@ -11,22 +14,26 @@ WIDTH = 100
 HIGHT = 20
 
 # Game point
-POINT = 0  # только цифры!
+POINT = 0  # только цифры, строки конноктирует!
 
-POINT_YX = [HIGHT - 4, WIDTH // 2]
+# начальные координаты точки
+POINT_YX = [0, 0]
+
+# заготовка для платформі
+PLATFORM = []
 
 # Keymap of control
 keys = {
-    0x48: (-1, 0),
-    0x50: (1, 0),
     0x4b: (0, -1),
     0x4d: (0, 1), }
 '''
-0x48: 'Up' = -1, 0
-0x50: 'Down' = 1, 0
-0x4b: 'Left' = 0, -1
-0x4d: 'Right' = 0, 1
+0x48: 'Up' = -1,        0x48: (-1, 0)
+0x50: 'Down' = 1, 0     0x50: (1, 0)
+0x4b: 'Left' = 0, -1    0x4b: (0, -1)
+0x4d: 'Right' = 0, 1    0x4d: (0, 1),
 '''
+# счёт
+SCORE = [0]
 
 PRINT_MAP = {
     0: '░',
@@ -35,22 +42,40 @@ PRINT_MAP = {
     3: '-',
     4: '|',
     5: '█',
+    6: '=',
 }  # {0: '░', 1: '█', 2:'▢', 3: '-', 4: '|',}
 
 ROUT = [-1, 1]
 
 # make game FIELD
-FIELD = [[POINT * j for j in range(WIDTH)] for i in range(HIGHT)]
+FIELD = []
 
 
-def make_field(FIELD):
+def add_point(POINT_YX):
+    y, x = map(int, POINT_YX)
+    FIELD[y][x] = 1                 # первичное размещение точки
+
+
+
+def make_field():
     '''
     Здесь создаётся игровое поле о всеми вытекающими
     '''
 
-    # первую и верхнюю строчку превращаем в заборчик
-    for colum in (0, HIGHT - 1):
-        FIELD[colum] = [3 for j in range(WIDTH)]
+    ## make game FIELD
+    FIELD.clear()
+    for y in range(HIGHT):
+        FIELD.append([])
+        for x in range(WIDTH):
+            FIELD[y].append(POINT * x)
+
+    # FIELD = [[POINT * j for j in range(WIDTH)] for i in range(HIGHT)]
+
+    #  верхнюю строчку превращаем в заборчик
+    FIELD[0] = [3 for j in range(WIDTH)]
+
+    #  нижню строчку превращаем в заборчик
+    FIELD[HIGHT - 1] = [6 for j in range(WIDTH)]
 
     # левую и правые стороны превращаем в столбики
     for y in range(1, HIGHT - 1):
@@ -63,25 +88,47 @@ def make_field(FIELD):
             FIELD[y][x] = 2
 
     # make platform
-    for x in range(WIDTH // 2 - 3, WIDTH // 2 + 2):
+    PLATFORM.clear()
+    for x in range(WIDTH // 2 - 6, WIDTH // 2 + 4):
         FIELD[HIGHT - 2][x] = 5
+        PLATFORM.append([HIGHT - 2, x])
+
+    # FIELD[START_POS[0]][START_POS[1]] = 1        # первичное размещение точки
+
+def start_game():
+    '''
+    cоздаём новую игру
+    '''
+
+    # начальные координаты точки на 1 стоку выше платформы
+    POINT_YX[0], POINT_YX[1] = HIGHT - 4, WIDTH // 2
+    # начальный вектор
+    ROUT[0], ROUT[1] = -1, 1
+    # начальный результат
+    SCORE[0] = 0
+    # генерируем поле
+    make_field()
+    # ставим точку на поле
+    add_point(POINT_YX)
 
 
-def clear():
-    if platform.system() == "Windows":
-        subprocess.Popen("cls",
-                         shell=True).communicate()
-    else:  # Linux and Mac
-        print("\033c", end="")
-    #system('cls' if name == 'nt' else 'clear')
+def clear() -> None:
+    '''
+    Очистка экрнана
+    '''
 
+    system('cls' if name == 'nt' else 'clear')
 
-def get_coord(coord=None) -> int:
+def end_game():
+    stdout.write('Игра оконченна\n Ваш результат:{SCORE}\n')
+    key: str = input('Хотите сыграть ещё?\n Для начала новой игры нажмите Y \n\
+    если хотите выйти то люую клавишу   ')
 
-    if coord is None:
-        coord = POINT_YX
-    Y, X = map(int, coord)
-    return Y, X
+    if key == 'y':
+        loop()
+    else:
+        exit()
+
 
 
 def print_FIELD(start_time):
@@ -90,41 +137,38 @@ def print_FIELD(start_time):
     Обновляя консоль кажды раз
     '''
     clear()
-    y, x = get_coord(POINT_YX)
-    print(f'Coordinate: [y = {y}, x = {x}] Vector {ROUT}')
-    # print('#' * (WIDTH + 2))
+
+    y, x = map(int, POINT_YX)
+    finish_time = perf_counter()
+    FPS = 1 // (finish_time - start_time)
+    stdout.write(f'\
+        SCORE = {SCORE}  [y = {y}, x = {x}] Vector {ROUT} FPS = {FPS}')
 
     ST = str()
     for line in FIELD:
-        # как же мне нравится это решение
-        # print('#', ''.join(PRINT_MAP[e] for e in line), end='#\n')
 
         # работает через коннотацию строк
         ST += ''.join(PRINT_MAP[e] for e in line) + '\n'
 
-    # так не мерцает экран
-    stdout.write(ST)
-
-    finish_time = time.time()
-    print(f'Frame time:  {finish_time - start_time:.5f}', "Current: %d, Peak %d" %
-          tracemalloc.get_traced_memory())
-
-
-def add_point(START_POS):
-
-    y, x = get_coord(START_POS)
-    # первичное размещение точки
-    FIELD[y][x] = 1
+    stdout.write(ST)                # так не мерцает экран
+    stdout.flush()
 
 
 def rout_v(coord):
     '''
     Отвечает за отскок меняя вектор направления на противоположный
     '''
-    if coord[0] != 0:
-        ROUT[0] = coord[0]
-    if coord[1] != 0:
-        ROUT[1] = coord[1]
+
+    if PLATFORM[0][1] <= 1 and coord[1] == -1:
+        pass
+    elif PLATFORM[-1][1] >= WIDTH - 2 and coord[1] == 1:
+        pass
+    else:
+        for X in range(len(PLATFORM)):
+            FIELD[PLATFORM[X][0]][PLATFORM[X][1]] = 0
+        for X in range(len(PLATFORM)):
+            PLATFORM[X][1] += coord[1]
+            FIELD[PLATFORM[X][0]][PLATFORM[X][1]] = 5
 
 
 def timed_input(timeout=0.1):
@@ -143,26 +187,26 @@ def timed_input(timeout=0.1):
 
         stdout.flush()
 
-    start = time.monotonic()
-    while time.monotonic() - start < timeout:
+    start = monotonic()
+    while monotonic() - start < timeout:
 
         echo()
 
         if kbhit():
             '''
-            getch() вызывается дважды не просто так, т.к. управление стрелочками
-            а стрелочки при нажатии генерируют два кода, и соответственно нужно
+            getch() вызывается дважды не просто так,
+            т.к. управление стрелочками а стрелочки при нажатии
+            генерируют два кода, и соответственно нужно
             дважды обрабатывать
             '''
             prefix = ord(getch())
             if prefix == 0xe0:
                 echo()
                 keycode = ord(getch())
-                symbol = keys.get(keycode, 'unexpected')
+                symbol = keys.get(keycode, [0, 0])
 
-                rout_v(symbol)  # отвечает за отсткок
+                rout_v(symbol)  # отвечает за платформу
 
-                print(f'Press {symbol}')
             # Отвечает за комбинацию Ctrl + C
             elif prefix == 3:
                 echo()
@@ -171,22 +215,25 @@ def timed_input(timeout=0.1):
                 pass
 
 
-def move(ROUT):
+def move():
     '''
     '''
-    Y, X = get_coord(POINT_YX)                   # нынешние координаты точки
+    Y, X = map(int, POINT_YX)                   # нынешние координаты точки
 
     # ROUT[0] = Y
     # ROUT[1] = X
 
-
     # Проверяю соприкаснётся шар с поверхностью
     # и по какой оси его нужно отразить
 
-    if FIELD[Y + ROUT[0]][X] in (2, 3, 4, 5,):
-        if  FIELD[Y + ROUT[0]][X] == 2:             # проверяем где нужно удалить блок
-            FIELD[Y + ROUT[0]][X] = 0
+    print(ROUT)
+    if FIELD[Y + ROUT[0]][X] == 6:
+        end_game()
 
+    elif FIELD[Y + ROUT[0]][X] in (2, 3, 4, 5,):
+        if FIELD[Y + ROUT[0]][X] == 2:             # проверяем где нужно удалить блок
+            FIELD[Y + ROUT[0]][X] = 0
+            SCORE[0] += 1
 
         ROUT[0] = ROUT[0] * -1
         NEW_Y = Y + ROUT[0]
@@ -197,17 +244,17 @@ def move(ROUT):
             ROUT[1] = ROUT[1] * -1
             NEW_X = X + ROUT[1]
 
-
     elif FIELD[Y][X + ROUT[1]] in (2, 3, 4, 5,):
 
         if FIELD[Y][X + ROUT[1]] == 2:              # проверяем где нужно удалить блок
             FIELD[Y][X + ROUT[1]] = 0
+            SCORE[0] += 1
 
-
-        ROUT[1] = ROUT[1] * -1                      # меняем направление по оси х
-        NEW_X = X + ROUT[1]                         # устанавливаем новое положение х
+        # меняем направление по оси х
+        ROUT[1] = ROUT[1] * -1
+        # устанавливаем новое положение х
+        NEW_X = X + ROUT[1]
         NEW_Y = Y + ROUT[0]                         # новое положение у
-
 
     else:
         # если нет припятсвий то летит дальше
@@ -224,14 +271,12 @@ def loop():
     '''
     Главный цикл
     '''
-    add_point(POINT_YX)
-    make_field(FIELD)
+    start_game()
 
     while True:
-        tracemalloc.start()
-        start_time = time.time()
+        start_time = perf_counter()
         print_FIELD(start_time)
-        move(ROUT)
+        move()
         timed_input()
 
 
