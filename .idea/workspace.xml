@@ -2,10 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="594b3c89-5a25-4e95-9599-fdbdd5be4a2d" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/JumpiConsol.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/JumpiConsol.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/venv/pyvenv.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/venv/pyvenv.cfg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arkanoid.py" beforeDir="false" afterPath="$PROJECT_DIR$/Arkanoid.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/move.py" beforeDir="false" afterPath="$PROJECT_DIR$/move.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -109,6 +108,12 @@
       <workItem from="1612894694278" duration="490000" />
       <workItem from="1615572865988" duration="1010000" />
       <workItem from="1615573932602" duration="981000" />
+      <workItem from="1616531083653" duration="22000" />
+      <workItem from="1616929029929" duration="167000" />
+      <workItem from="1618132658832" duration="12381000" />
+      <workItem from="1618251109934" duration="1208000" />
+      <workItem from="1618330741719" duration="7641000" />
+      <workItem from="1618415513153" duration="3927000" />
     </task>
     <servers />
   </component>
