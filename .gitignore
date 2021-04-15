@@ -10,3 +10,4 @@ __pycache__
 .idea/misc.xml
 .idea/workspace.xml
 venv/pyvenv.cfg
+.idea/workspace.xml
