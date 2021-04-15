@@ -1,13 +1,19 @@
 '''
-Arkanoid version 1.0
+Arkanoid version 1.0.1
 by Di2mot
 '''
+
 
 from time import perf_counter, monotonic, sleep
 from msvcrt import getch, kbhit
 from os import system, name
 from sys import stdout
+import ctypes
+from ctypes import c_long, c_wchar_p, c_ulong, c_void_p
+from array import array
 
+
+gHandle = ctypes.windll.kernel32.GetStdHandle(c_long(-11))
 
 # Size of the game FIELD
 WIDTH = 100
@@ -17,10 +23,10 @@ HIGHT = 20
 POINT = 0  # только цифры, строки конноктирует!
 
 # начальные координаты точки
-POINT_YX = [0, 0]
+POINT_YX = array('b',[0, 0])
 
 # заготовка для платформі
-PLATFORM = []
+PLATFORM = [0]
 
 # Keymap of control
 keys = {
@@ -33,7 +39,7 @@ keys = {
 0x4d: 'Right' = 0, 1    0x4d: (0, 1),
 '''
 # счёт
-SCORE = [0]
+SCORE = array('b', [0])
 
 PRINT_MAP = {
     0: '░',
@@ -48,7 +54,7 @@ PRINT_MAP = {
 ROUT = [-1, 1]
 
 # make game FIELD
-FIELD = []
+FIELD = [0]
 
 
 def add_point(POINT_YX):
@@ -61,21 +67,24 @@ def make_field():
     '''
     Здесь создаётся игровое поле о всеми вытекающими
     '''
+    FIELD.clear()
+    PLATFORM.clear()
 
     ## make game FIELD
-    FIELD.clear()
+
     for y in range(HIGHT):
-        FIELD.append([])
-        for x in range(WIDTH):
-            FIELD[y].append(POINT * x)
+        fl = array('b', [POINT * i for i in range(WIDTH)])
+        FIELD.append(fl)
+
 
     # FIELD = [[POINT * j for j in range(WIDTH)] for i in range(HIGHT)]
 
     #  верхнюю строчку превращаем в заборчик
-    FIELD[0] = [3 for j in range(WIDTH)]
+    FIELD[0] = array('b', [6 for i in range(WIDTH)])
+    print(FIELD)
 
     #  нижню строчку превращаем в заборчик
-    FIELD[HIGHT - 1] = [6 for j in range(WIDTH)]
+    FIELD[HIGHT - 1] = array('b',[6 for j in range(WIDTH)])
 
     # левую и правые стороны превращаем в столбики
     for y in range(1, HIGHT - 1):
@@ -88,7 +97,6 @@ def make_field():
             FIELD[y][x] = 2
 
     # make platform
-    PLATFORM.clear()
     for x in range(WIDTH // 2 - 6, WIDTH // 2 + 4):
         FIELD[HIGHT - 2][x] = 5
         PLATFORM.append([HIGHT - 2, x])
@@ -120,11 +128,11 @@ def clear() -> None:
     system('cls' if name == 'nt' else 'clear')
 
 def end_game():
-    stdout.write('Игра оконченна\n Ваш результат:{SCORE}\n')
+    stdout.write(f'Игра оконченна\n Ваш результат:{SCORE}\n')
     key: str = input('Хотите сыграть ещё?\n Для начала новой игры нажмите Y \n\
     если хотите выйти то люую клавишу   ')
 
-    if key == 'y':
+    if key.upper() == 'Y':
         loop()
     else:
         exit()
@@ -141,16 +149,26 @@ def print_FIELD(start_time):
     y, x = map(int, POINT_YX)
     finish_time = perf_counter()
     FPS = 1 // (finish_time - start_time)
+
+
     stdout.write(f'\
-        SCORE = {SCORE}  [y = {y}, x = {x}] Vector {ROUT} FPS = {FPS}')
+        SCORE = {SCORE}  [y = {y}, x = {x}] Vector {ROUT} FPS = {FPS}\n')
 
     ST = str()
+
     for line in FIELD:
 
         # работает через коннотацию строк
         ST += ''.join(PRINT_MAP[e] for e in line) + '\n'
 
-    stdout.write(ST)                # так не мерцает экран
+
+    if name == 'nt':
+        ctypes.windll.kernel32.WriteConsoleW(gHandle, c_wchar_p(
+            ST), c_ulong(len(ST)), c_void_p(), None) # так экран мерцат меньше
+    else:
+        stdout.write(ST)                             # так экран мерцат меньше
+
+
     stdout.flush()
 
 
@@ -227,11 +245,15 @@ def move():
     # и по какой оси его нужно отразить
 
     print(ROUT)
-    if FIELD[Y + ROUT[0]][X] == 6:
+
+    # проверямем, не попал ли мяч в пол
+    if Y + ROUT[0] == HIGHT - 1:
         end_game()
 
     elif FIELD[Y + ROUT[0]][X] in (2, 3, 4, 5,):
-        if FIELD[Y + ROUT[0]][X] == 2:             # проверяем где нужно удалить блок
+
+        # проверяем где нужно удалить блок
+        if FIELD[Y + ROUT[0]][X] == 2:
             FIELD[Y + ROUT[0]][X] = 0
             SCORE[0] += 1
 
@@ -246,7 +268,8 @@ def move():
 
     elif FIELD[Y][X + ROUT[1]] in (2, 3, 4, 5,):
 
-        if FIELD[Y][X + ROUT[1]] == 2:              # проверяем где нужно удалить блок
+        # проверяем где нужно удалить блок
+        if FIELD[Y][X + ROUT[1]] == 2:
             FIELD[Y][X + ROUT[1]] = 0
             SCORE[0] += 1
 
