@@ -1,5 +1,9 @@
 '''
+<<<<<<< Updated upstream
 Arkanoid version 1.0
+=======
+Arkanoid version 1.1
+>>>>>>> Stashed changes
 by Di2mot
 '''
 
@@ -72,7 +76,12 @@ def make_field():
     # FIELD = [[POINT * j for j in range(WIDTH)] for i in range(HIGHT)]
 
     #  верхнюю строчку превращаем в заборчик
+<<<<<<< Updated upstream
     FIELD[0] = [3 for j in range(WIDTH)]
+=======
+    FIELD[0] = array('b', [6 for i in range(WIDTH)])
+
+>>>>>>> Stashed changes
 
     #  нижню строчку превращаем в заборчик
     FIELD[HIGHT - 1] = [6 for j in range(WIDTH)]
