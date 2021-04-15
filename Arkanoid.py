@@ -1,10 +1,6 @@
 '''
 =======
 Arkanoid version 1.1
->>>>>>> Stashed changes
-=======
-Arkanoid version 1.0.1
->>>>>>> 910aa536367bba2777deb3b42f17bb1123563ef5
 by Di2mot
 '''
 
