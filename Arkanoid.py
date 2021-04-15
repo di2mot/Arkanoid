@@ -1,6 +1,5 @@
 '''
-=======
-Arkanoid version 1.1
+Arkanoid version 1.1.2
 by Di2mot
 '''
 
@@ -81,17 +80,15 @@ def make_field():
     # FIELD = [[POINT * j for j in range(WIDTH)] for i in range(HIGHT)]
 
     #  верхнюю строчку превращаем в заборчик
-<<<<<<< HEAD
-<<<<<<< Updated upstream
+
     FIELD[0] = [3 for j in range(WIDTH)]
-=======
+
     FIELD[0] = array('b', [6 for i in range(WIDTH)])
 
->>>>>>> Stashed changes
-=======
+
     FIELD[0] = array('b', [6 for i in range(WIDTH)])
     print(FIELD)
->>>>>>> 910aa536367bba2777deb3b42f17bb1123563ef5
+
 
     #  нижню строчку превращаем в заборчик
     FIELD[HIGHT - 1] = array('b',[6 for j in range(WIDTH)])
@@ -162,7 +159,7 @@ def print_FIELD(start_time):
 
 
     stdout.write(f'\
-        SCORE = {SCORE}  [y = {y}, x = {x}] Vector {ROUT} FPS = {FPS}\n')
+        SCORE = {SCORE[0]}  [y = {y}, x = {x}] Vector {ROUT} FPS = {FPS}\n')
 
     ST = str()
 
