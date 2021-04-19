@@ -13,7 +13,7 @@ from ctypes import c_long, c_wchar_p, c_ulong, c_void_p
 from array import array
 
 
-gHandle = ctypes.windll.kernel32.GetStdHandle(c_long(-11))
+
 
 # Size of the game FIELD
 WIDTH = 100
@@ -56,6 +56,8 @@ ROUT = [-1, 1]
 # make game FIELD
 FIELD = [0]
 
+if name == 'nt':
+    gHandle = ctypes.windll.kernel32.GetStdHandle(c_long(-11))
 
 def add_point(POINT_YX):
     y, x = map(int, POINT_YX)
@@ -303,7 +305,6 @@ def loop():
 
     while True:
         start_time = perf_counter()
-        print_FIELD(start_time)
         move()
         timed_input()
 
