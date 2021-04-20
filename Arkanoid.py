@@ -1,19 +1,19 @@
+#-*- coding: utf-8 -*-
 '''
-Arkanoid version 1.1.2
+Arkanoid version 1.2
 by Di2mot
 '''
 
-
-from time import perf_counter, monotonic, sleep
+from time import perf_counter, monotonic
 from msvcrt import getch, kbhit
 from os import system, name
 from sys import stdout
-import ctypes
-from ctypes import c_long, c_wchar_p, c_ulong, c_void_p
 from array import array
 
-
-
+if name == 'nt':
+    import ctypes
+    from ctypes import c_long, c_wchar_p, c_ulong, c_void_p
+    gHandle = ctypes.windll.kernel32.GetStdHandle(c_long(-11))
 
 # Size of the game FIELD
 WIDTH = 100
@@ -23,9 +23,9 @@ HIGHT = 20
 POINT = 0  # только цифры, строки конноктирует!
 
 # начальные координаты точки
-POINT_YX = array('b',[0, 0])
+POINT_YX = array('b', [0, 0])
 
-# заготовка для платформі
+# заготовка для платформы
 PLATFORM = [0]
 
 # Keymap of control
@@ -51,18 +51,25 @@ PRINT_MAP = {
     6: '=',
 }  # {0: '░', 1: '█', 2:'▢', 3: '-', 4: '|',}
 
+# направление движения
 ROUT = [-1, 1]
 
 # make game FIELD
 FIELD = [0]
 
-if name == 'nt':
-    gHandle = ctypes.windll.kernel32.GetStdHandle(c_long(-11))
+# статус игры
+GAME_STATUS = [0]
+
+# коэфициент отвечающий за количество блоков
+AMOUNT = 5
+
 
 def add_point(POINT_YX):
+    '''
+    первичное размещение точки
+    '''
     y, x = map(int, POINT_YX)
-    FIELD[y][x] = 1                 # первичное размещение точки
-
+    FIELD[y][x] = 1
 
 
 def make_field():
@@ -72,28 +79,17 @@ def make_field():
     FIELD.clear()
     PLATFORM.clear()
 
-    ## make game FIELD
+    # make game FIELD
 
     for y in range(HIGHT):
         fl = array('b', [POINT * i for i in range(WIDTH)])
         FIELD.append(fl)
 
-
-    # FIELD = [[POINT * j for j in range(WIDTH)] for i in range(HIGHT)]
-
     #  верхнюю строчку превращаем в заборчик
+    FIELD[0] = array('b', [3 for i in range(WIDTH)])
 
-    FIELD[0] = [3 for j in range(WIDTH)]
-
-    FIELD[0] = array('b', [6 for i in range(WIDTH)])
-
-
-    FIELD[0] = array('b', [6 for i in range(WIDTH)])
-    print(FIELD)
-
-
-    #  нижню строчку превращаем в заборчик
-    FIELD[HIGHT - 1] = array('b',[6 for j in range(WIDTH)])
+    #  ижняя строчку превращаем в лаву!
+    FIELD[HIGHT - 1] = array('b', [6 for j in range(WIDTH)])
 
     # левую и правые стороны превращаем в столбики
     for y in range(1, HIGHT - 1):
@@ -101,7 +97,7 @@ def make_field():
             FIELD[y][x] = 4
 
     # создаём блоки в которые будет бится шар
-    for y in range(1, 5):
+    for y in range(1, AMOUNT):
         for x in range(1, WIDTH - 1):
             FIELD[y][x] = 2
 
@@ -112,9 +108,10 @@ def make_field():
 
     # FIELD[START_POS[0]][START_POS[1]] = 1        # первичное размещение точки
 
+
 def start_game():
     '''
-    cоздаём новую игру
+    Создаём новую игру
     '''
 
     # начальные координаты точки на 1 стоку выше платформы
@@ -128,6 +125,52 @@ def start_game():
     # ставим точку на поле
     add_point(POINT_YX)
 
+    if GAME_STATUS[0] == 0:
+        print_FIELD()
+        game_name = 'Arkanoid v.1.2'
+        start_game_text = 'Для начала игры нажмите: Y'
+        exit_game_text = 'Для выхода нажмите любую клавишу '
+
+        # для сокращения записи
+        H = HIGHT // 2
+
+        if name == 'nt':
+            move_cursor(H, WIDTH // 2 - len(game_name) // 2)
+            stdout.write(game_name)
+            stdout.flush()
+
+            move_cursor(H + 2, WIDTH // 2 - len(start_game_text) // 2)
+            stdout.write(start_game_text)
+            stdout.flush()
+
+            move_cursor(H + 3, WIDTH // 2 - len(exit_game_text) // 2)
+            stdout.write(exit_game_text)
+            stdout.flush()
+            key: str = input('  ')
+            move_cursor(HIGHT + 1, 0)  # переводим курсор ниже поля
+
+        else:
+            # '\033[8;1H' перевод курсора на 8 строку, 1 столбец в Linux
+
+            W = WIDTH // 2 - len(game_name) // 2
+
+            stdout.write(
+                f'\033[{H};{W}H' + game_name)
+            stdout.flush()
+
+            stdout.write(
+                f'\033[{H + 2};{W}H' + game_name)
+            stdout.flush()
+
+            stdout.write(
+                f'\033[{H + 3};{W}H' + game_name)
+            stdout.flush()
+            key: str = input('  ')
+
+        if key.upper() != 'Y':
+            exit()
+    GAME_STATUS[0] = 1
+
 
 def clear() -> None:
     '''
@@ -136,19 +179,96 @@ def clear() -> None:
 
     system('cls' if name == 'nt' else 'clear')
 
-def end_game():
-    stdout.write(f'Игра оконченна\n Ваш результат:{SCORE}\n')
-    key: str = input('Хотите сыграть ещё?\n Для начала новой игры нажмите Y \n\
-    если хотите выйти то люую клавишу   ')
 
+def move_cursor(y, x):
+    """Move cursor to position indicated by x and y."""
+    value = x + (y << 16)
+    ctypes.windll.kernel32.SetConsoleCursorPosition(gHandle, c_ulong(value))
+
+
+def end_game():
+    '''
+    Отвечает за выход из игры
+    '''
+    game_over = 'Game over!'
+    end_game_text = f'Ваш результат: {SCORE[0]}'
+    end_game_q = 'Хотите сыграть ещё?'
+    for_new_game = 'Для начала новой игры нажмите Y'
+    for_exit_game = 'Eсли хотите выйти то любую клавишу   '
+
+    # '\033[8;1H'  f'\033[{8};{1}H'
+    if name == 'nt':
+        move_cursor(HIGHT // 2, WIDTH // 2 - len(game_over) // 2)
+        stdout.write(game_over)
+        stdout.flush()
+
+        move_cursor((HIGHT // 2) + 2, WIDTH // 2 - len(end_game_text) // 2)
+        stdout.write(end_game_text)
+        stdout.flush()
+
+        move_cursor((HIGHT // 2) + 3, WIDTH // 2 - len(end_game_q) // 2)
+        stdout.write(end_game_q)
+        stdout.flush()
+
+        move_cursor((HIGHT // 2) + 4, WIDTH // 2 - len(for_new_game) // 2)
+
+    else:
+        H = HIGHT // 2
+        W = WIDTH // 2 - len(game_over) // 2
+
+        stdout.write(f'\033[{H};{W}H' + game_over)
+        stdout.flush()
+
+        stdout.write(f'\033[{H + 2};{W}H' + end_game_text)
+        stdout.flush()
+
+        stdout.write(f'\033[{H + 3};{W}H' + end_game_q)
+        stdout.flush()
+
+        stdout.write(f'\033[{H + 4};{W}H')
+        stdout.flush()
+
+    key: str = input('Хотите сыграть ещё раз? Y/N   ')
+    stdout.flush()
     if key.upper() == 'Y':
         loop()
     else:
+        move_cursor(HIGHT + 1, 0)  # перводим курсор ниже поля
         exit()
 
+def win():
+    win_text = 'You win!'
+    win_q = 'Хотите сыграть ещё раз? Y/N'
+
+    H = HIGHT // 2
+    W = WIDTH // 2 - len(win_q) // 2
+
+    if name == 'nt':
+        move_cursor(H, WIDTH // 2 - len(win_text) // 2)
+        stdout.write(game_over)
+        stdout.flush()
+
+        move_cursor(H + 2, WIDTH // 2 - len(win_q) // 2)
+        stdout.write(win_q)
+        stdout.flush()
+    else:
+        stdout.write(f'\033[{H};{W}H' + win_text)
+        stdout.flush()
+
+        stdout.write(f'\033[{H + 2};{W}H' + win_q)
+        stdout.flush()
 
 
-def print_FIELD(start_time):
+
+    key: str = input('Введите ответ   ')
+    stdout.flush()
+    if key.upper() == 'Y':
+        loop()
+    else:
+        move_cursor(HIGHT + 1, 0)  # перводим курсор ниже поля
+        exit()
+
+def print_FIELD(start_time=0):
     '''
     Выводит в консоль поле
     Обновляя консоль кажды раз
@@ -158,7 +278,6 @@ def print_FIELD(start_time):
     y, x = map(int, POINT_YX)
     finish_time = perf_counter()
     FPS = 1 // (finish_time - start_time)
-
 
     stdout.write(f'\
         SCORE = {SCORE[0]}  [y = {y}, x = {x}] Vector {ROUT} FPS = {FPS}\n')
@@ -170,22 +289,22 @@ def print_FIELD(start_time):
         # работает через коннотацию строк
         ST += ''.join(PRINT_MAP[e] for e in line) + '\n'
 
-
+    # так экран мерцат меньше
     if name == 'nt':
         ctypes.windll.kernel32.WriteConsoleW(gHandle, c_wchar_p(
-            ST), c_ulong(len(ST)), c_void_p(), None) # так экран мерцат меньше
+            ST), c_ulong(len(ST)), c_void_p(), None)
     else:
-        stdout.write(ST)                             # так экран мерцат меньше
-
+        stdout.write(ST)
 
     stdout.flush()
 
 
 def rout_v(coord):
     '''
-    Отвечает за отскок меняя вектор направления на противоположный
+    Отвечает за управление движением платформы
     '''
 
+    # проверяет не находится ли платформа у края поля
     if PLATFORM[0][1] <= 1 and coord[1] == -1:
         pass
     elif PLATFORM[-1][1] >= WIDTH - 2 and coord[1] == 1:
@@ -215,6 +334,7 @@ def timed_input(timeout=0.1):
         stdout.flush()
 
     start = monotonic()
+
     while monotonic() - start < timeout:
 
         echo()
@@ -257,7 +377,26 @@ def move():
     if Y + ROUT[0] == HIGHT - 1:
         end_game()
 
-    elif FIELD[Y + ROUT[0]][X] in (2, 3, 4, 5,):
+    # проверямем, не попал ли мяч в платформу
+    elif [Y + ROUT[0], X + ROUT[1]] in PLATFORM:
+
+        # получаем индекс вхождения [Y, X] в массиве PLATFORM
+        PL_index = PLATFORM.index([Y + ROUT[0], X + ROUT[1]])
+
+        # отбиваем шар в сторону
+        # если попало в правую часть платформы
+        if PL_index > len(PLATFORM) // 2:
+            ROUT[1] = 1
+        # если попало в левую часть платформы
+        else:
+            ROUT[1] = -1
+        ROUT[0] = -1
+        NEW_Y = Y + ROUT[0]
+        NEW_X = X + ROUT[1]
+
+    # если шар попал в боковые поверхности, верх, и блоки
+    # проверям по оси Y
+    elif FIELD[Y + ROUT[0]][X] in (2, 3, 4,):
 
         # проверяем где нужно удалить блок
         if FIELD[Y + ROUT[0]][X] == 2:
@@ -273,7 +412,8 @@ def move():
             ROUT[1] = ROUT[1] * -1
             NEW_X = X + ROUT[1]
 
-    elif FIELD[Y][X + ROUT[1]] in (2, 3, 4, 5,):
+    # проверяем по оси X
+    elif FIELD[Y][X + ROUT[1]] in (2, 3, 4,):
 
         # проверяем где нужно удалить блок
         if FIELD[Y][X + ROUT[1]] == 2:
@@ -301,12 +441,17 @@ def loop():
     '''
     Главный цикл
     '''
+
     start_game()
 
     while True:
         start_time = perf_counter()
+        print_FIELD(start_time)
         move()
         timed_input()
+
+        if SCORE[0] >= AMOUNT * (WIDTH - 2):
+            win()
 
 
 if __name__ == '__main__':
