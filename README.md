@@ -1,5 +1,5 @@
 # Arkanoid
-## _A simple Python game without pygame and external_
+## _A simple Python game without pygame and external dependencies_
 
 [![N|Solid](https://raw.githubusercontent.com/di2mot/Arkanoid/master/Arkanoid.png)]
 
