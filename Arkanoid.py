@@ -1,6 +1,6 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 '''
-Arkanoid version 1.2
+Arkanoid version 1.2.1
 by Di2mot
 '''
 
@@ -9,6 +9,7 @@ from msvcrt import getch, kbhit
 from os import system, name
 from sys import stdout
 from array import array
+from getpass import getuser
 
 if name == 'nt':
     import ctypes
@@ -109,6 +110,19 @@ def make_field():
     # FIELD[START_POS[0]][START_POS[1]] = 1        # первичное размещение точки
 
 
+def write_records(SCORE, name=getuser(), file_name='arkanoid_score.txt'):
+
+    with open(file_name, 'a') as record:
+        record.write('='.join(name, str(SCORE[0])))
+
+def read_records(file_name='arkanoid_score.txt'):
+    max = 0
+    with open(file_name, 'r') as record:
+        for line in record:
+            if int(line.split('=')[1]) > max:
+                max = int(line.split('=')[1])
+        return max
+
 def start_game():
     '''
     Создаём новую игру
@@ -172,20 +186,6 @@ def start_game():
     GAME_STATUS[0] = 1
 
 
-def clear() -> None:
-    '''
-    Очистка экрнана
-    '''
-
-    system('cls' if name == 'nt' else 'clear')
-
-
-def move_cursor(y, x):
-    """Move cursor to position indicated by x and y."""
-    value = x + (y << 16)
-    ctypes.windll.kernel32.SetConsoleCursorPosition(gHandle, c_ulong(value))
-
-
 def end_game():
     '''
     Отвечает за выход из игры
@@ -236,6 +236,7 @@ def end_game():
         move_cursor(HIGHT + 1, 0)  # перводим курсор ниже поля
         exit()
 
+
 def win():
     win_text = 'You win!'
     win_q = 'Хотите сыграть ещё раз? Y/N'
@@ -245,7 +246,7 @@ def win():
 
     if name == 'nt':
         move_cursor(H, WIDTH // 2 - len(win_text) // 2)
-        stdout.write(game_over)
+        stdout.write(win_text)
         stdout.flush()
 
         move_cursor(H + 2, WIDTH // 2 - len(win_q) // 2)
@@ -258,8 +259,6 @@ def win():
         stdout.write(f'\033[{H + 2};{W}H' + win_q)
         stdout.flush()
 
-
-
     key: str = input('Введите ответ   ')
     stdout.flush()
     if key.upper() == 'Y':
@@ -267,6 +266,21 @@ def win():
     else:
         move_cursor(HIGHT + 1, 0)  # перводим курсор ниже поля
         exit()
+
+
+def clear() -> None:
+    '''
+    Очистка экрнана
+    '''
+
+    system('cls' if name == 'nt' else 'clear')
+
+
+def move_cursor(y, x):
+    """Move cursor to position indicated by x and y."""
+    value = x + (y << 16)
+    ctypes.windll.kernel32.SetConsoleCursorPosition(gHandle, c_ulong(value))
+
 
 def print_FIELD(start_time=0):
     '''
