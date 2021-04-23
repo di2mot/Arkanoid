@@ -179,7 +179,7 @@ def start_game():
     # обнуляем результат
     SCORE[0] = 0
 
-    # generate the field  
+    # generate the field
     # генерируем поле
     make_field()
 
@@ -334,32 +334,44 @@ def win():
 
 def clear() -> None:
     '''
-    Очистка экрнана
+    Screen Cleaning
+    Очистка экрана
     '''
 
     system('cls' if name == 'nt' else 'clear')
 
 
 def move_cursor(y, x):
-    """Move cursor to position indicated by x and y."""
+    '''
+    Только под виндовс
+    Переместить курсор в позицию, обозначенную x и y.
+    Windows only. Move cursor to position indicated by x and y.
+    Thanks to stackoverflow
+    '''
     value = x + (y << 16)
     ctypes.windll.kernel32.SetConsoleCursorPosition(gHandle, c_ulong(value))
 
 
 def print_FIELD(start_time=0):
     '''
-    Выводит в консоль поле
-    Обновляя консоль кажды раз
-    '''
-    clear()
+    Outputs the playing field to the console, overwriting it from top to bottom
+    Go through the array and line by line preconvert into str() lines
+    After the playing field is formed, display
 
-    y, x = map(int, POINT_YX)
-    finish_time = perf_counter()
-    FPS = 1 // (finish_time - start_time)
+    Выводит в консоль игровое поле перезаписывая его сверху в низ
+    Проходим по массиву и построчно предобразуем в строки str()
+    После того как сформировали игровое поле, выодим на экран
+    '''
+
+    move_cursor(0, 0)
+
+    FPS = 1 // (perf_counter() - start_time)
 
     stdout.write(f'\
-        SCORE = {SCORE[0]}  [y = {y}, x = {x}] Vector {ROUT} FPS = {FPS}\n')
+        SCORE = {SCORE[0]}  FPS = {FPS}\n')
 
+    # blank string in which the field will be added
+    # заготовка строки в которую будет добавляться поле
     ST = str()
 
     for line in FIELD:
@@ -367,6 +379,7 @@ def print_FIELD(start_time=0):
         # работает через коннотацию строк
         ST += ''.join(PRINT_MAP[e] for e in line) + '\n'
 
+    # works through string connotation
     # так экран мерцат меньше
     if name == 'nt':
         ctypes.windll.kernel32.WriteConsoleW(gHandle, c_wchar_p(
@@ -377,19 +390,28 @@ def print_FIELD(start_time=0):
     stdout.flush()
 
 
-def rout_v(coord):
+def muve_platform(coord):
     '''
+    Responsible for controlling the movement of the platform
     Отвечает за управление движением платформы
     '''
-
+    # checks if the platform is at the edge of the field
     # проверяет не находится ли платформа у края поля
     if PLATFORM[0][1] <= 1 and coord[1] == -1:
         pass
     elif PLATFORM[-1][1] >= WIDTH - 2 and coord[1] == 1:
         pass
     else:
+        '''
+        very suboptimal, in several passes overwrites the 
+        position of the platform
+
+        очень не оптимально, в нескалько подходов 
+        перезаписывает положение платформы
+        '''
         for X in range(len(PLATFORM)):
             FIELD[PLATFORM[X][0]][PLATFORM[X][1]] = 0
+
         for X in range(len(PLATFORM)):
             PLATFORM[X][1] += coord[1]
             FIELD[PLATFORM[X][0]][PLATFORM[X][1]] = 5
@@ -397,6 +419,11 @@ def rout_v(coord):
 
 def timed_input(timeout=0.1):
     '''
+    function responsible for handling keystrokes
+    timeout: is responsible for the time the script waits
+    before it continues to run, the smaller the value is,
+    the more often the screen will be refreshed
+
     функция отвечающая за обработку нажатия клвиш
     timeout: отвечает за время которое скрипт ждёт
     прежде чем продолжить выполнение чем меньше значение,
@@ -415,7 +442,7 @@ def timed_input(timeout=0.1):
 
     while monotonic() - start < timeout:
 
-        echo()
+        stdout.flush()
 
         if kbhit():
             '''
@@ -426,15 +453,15 @@ def timed_input(timeout=0.1):
             '''
             prefix = ord(getch())
             if prefix == 0xe0:
-                echo()
+                stdout.flush()
                 keycode = ord(getch())
                 symbol = keys.get(keycode, [0, 0])
 
-                rout_v(symbol)  # отвечает за платформу
+                muve_platform(symbol)  # отвечает за платформу
 
             # Отвечает за комбинацию Ctrl + C
             elif prefix == 3:
-                echo()
+                stdout.flush()
                 exit()
             else:
                 pass
@@ -519,6 +546,7 @@ def loop():
     '''
     Главный цикл
     '''
+    clear()
 
     start_game()
 
