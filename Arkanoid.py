@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Arkanoid version 1.2.2
+Arkanoid version 1.3
 by Di2mot
 '''
 
@@ -390,7 +390,7 @@ def print_FIELD(start_time=0):
     stdout.flush()
 
 
-def muve_platform(coord):
+def move_platform(coord):
     '''
     Responsible for controlling the movement of the platform
     Отвечает за управление движением платформы
@@ -430,14 +430,6 @@ def timed_input(timeout=0.1):
     тем чаще будет обновляться экран
     '''
 
-    def echo():
-        '''
-        Функция сбрасывает буфер, не давая Пиону ожадать,
-        и выполняет код дальше
-        '''
-
-        stdout.flush()
-
     start = monotonic()
 
     while monotonic() - start < timeout:
@@ -446,6 +438,11 @@ def timed_input(timeout=0.1):
 
         if kbhit():
             '''
+            getch() is called twice for a reason,
+            because the arrow control and the arrows, when pressed
+            generate two codes and, consequently, we have to
+            handle
+
             getch() вызывается дважды не просто так,
             т.к. управление стрелочками а стрелочки при нажатии
             генерируют два кода, и соответственно нужно
@@ -457,8 +454,9 @@ def timed_input(timeout=0.1):
                 keycode = ord(getch())
                 symbol = keys.get(keycode, [0, 0])
 
-                muve_platform(symbol)  # отвечает за платформу
+                move_platform(symbol)
 
+            # Responsible for the Ctrl + C combination
             # Отвечает за комбинацию Ctrl + C
             elif prefix == 3:
                 stdout.flush()
@@ -469,29 +467,47 @@ def timed_input(timeout=0.1):
 
 def move():
     '''
+    Responsible for moving the point across the screen
+    Отвечает за перемещение точки по экрану
     '''
-    Y, X = map(int, POINT_YX)                   # нынешние координаты точки
+
+    # current point coordinates
+    # нынешние координаты точки
+    Y, X = map(int, POINT_YX)
 
     # ROUT[0] = Y
     # ROUT[1] = X
 
-    # Проверяю соприкаснётся шар с поверхностью
-    # и по какой оси его нужно отразить
+    '''
+    check if the ball is in contact with the surface
+    and along which axis it should be reflected
 
+    Проверяю соприкаснётся шар с поверхностью
+    и по какой оси его нужно отразить
+    '''
+
+    # check to see if the ball hit the floor
     # проверямем, не попал ли мяч в пол
     if Y + ROUT[0] == HIGHT - 1:
         end_game()
 
+    # check to see if the ball has hit the platform
     # проверямем, не попал ли мяч в платформу
     elif [Y + ROUT[0], X + ROUT[1]] in PLATFORM:
 
+        # get the index of the occurrence [Y, X] in the PLATFORM array
         # получаем индекс вхождения [Y, X] в массиве PLATFORM
         PL_index = PLATFORM.index([Y + ROUT[0], X + ROUT[1]])
 
+        # kicking the ball to the side
         # отбиваем шар в сторону
+
+        # if it hits the right side of the platform
         # если попало в правую часть платформы
         if PL_index > len(PLATFORM) // 2:
             ROUT[1] = 1
+        
+        # if hit on the left side of the platform       
         # если попало в левую часть платформы
         else:
             ROUT[1] = -1
@@ -499,10 +515,14 @@ def move():
         NEW_Y = Y + ROUT[0]
         NEW_X = X + ROUT[1]
 
+    # if the ball hit the sides, the top, and the blocks
     # если шар попал в боковые поверхности, верх, и блоки
+
+    # check the Y-axis
     # проверям по оси Y
     elif FIELD[Y + ROUT[0]][X] in (2, 3, 4,):
 
+        # check where to delete the block
         # проверяем где нужно удалить блок
         if FIELD[Y + ROUT[0]][X] == 2:
             FIELD[Y + ROUT[0]][X] = 0
@@ -517,33 +537,44 @@ def move():
             ROUT[1] = ROUT[1] * -1
             NEW_X = X + ROUT[1]
 
+    # check along the X-axis
     # проверяем по оси X
     elif FIELD[Y][X + ROUT[1]] in (2, 3, 4,):
 
+        # check where to delete the block
         # проверяем где нужно удалить блок
         if FIELD[Y][X + ROUT[1]] == 2:
             FIELD[Y][X + ROUT[1]] = 0
             SCORE[0] += 1
 
+        # change the direction of the x-axis
         # меняем направление по оси х
         ROUT[1] = ROUT[1] * -1
-        # устанавливаем новое положение х
+
+        # set the new position x and y
+        # устанавливаем новое положение х и у
         NEW_X = X + ROUT[1]
-        NEW_Y = Y + ROUT[0]                      # новое положение у
+        NEW_Y = Y + ROUT[0]
 
     else:
+        # if there are no obstacles, it flies on
         # если нет припятсвий то летит дальше
         NEW_Y = Y + ROUT[0]
         NEW_X = X + ROUT[1]
 
-    # обнуляем прошлое положение точки
+    # reset the past position of the point, draw the point at the new location
+    # update the point coordinate
+
+    # обнуляем прошлое положение точки, рисуем точку в новом месте
+    # обновляем координату точки
     FIELD[Y][X] = 0
-    FIELD[NEW_Y][NEW_X] = 1                      # рисуем точку в новом месте
-    POINT_YX[0], POINT_YX[1] = NEW_Y, NEW_X      # обновляем координату точки
+    FIELD[NEW_Y][NEW_X] = 1
+    POINT_YX[0], POINT_YX[1] = NEW_Y, NEW_X
 
 
 def loop():
     '''
+    Main cycle
     Главный цикл
     '''
     clear()
