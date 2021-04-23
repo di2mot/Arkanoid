@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 '''
-Arkanoid version 1.2.1
+Arkanoid version 1.2.2
 by Di2mot
 '''
 
-from time import perf_counter, monotonic
+from time import perf_counter, monotonic, strftime
 from msvcrt import getch, kbhit
 from os import system, name
 from sys import stdout
@@ -16,20 +16,31 @@ if name == 'nt':
     from ctypes import c_long, c_wchar_p, c_ulong, c_void_p
     gHandle = ctypes.windll.kernel32.GetStdHandle(c_long(-11))
 
+
 # Size of the game FIELD
+# Размер игрового поля
 WIDTH = 100
 HIGHT = 20
 
-# Game point
-POINT = 0  # только цифры, строки конноктирует!
+'''
+ what the playing field is made up of
+ only numbers, strings are not!
+ из чего состоит игровое поле
+ только цифры, строки конноктирует!
+'''
+POINT = 0
 
+# start point coordinates
 # начальные координаты точки
 POINT_YX = array('b', [0, 0])
 
+# platform blank
 # заготовка для платформы
 PLATFORM = [0]
 
 # Keymap of control
+# коды клавиш
+
 keys = {
     0x4b: (0, -1),
     0x4d: (0, 1), }
@@ -39,9 +50,14 @@ keys = {
 0x4b: 'Left' = 0, -1    0x4b: (0, -1)
 0x4d: 'Right' = 0, 1    0x4d: (0, 1),
 '''
+# score
 # счёт
 SCORE = array('b', [0])
 
+'''
+Map converting numbers into textures
+Карта преобразования цифр в текстуры
+'''
 PRINT_MAP = {
     0: '░',
     1: '▢',
@@ -52,21 +68,26 @@ PRINT_MAP = {
     6: '=',
 }  # {0: '░', 1: '█', 2:'▢', 3: '-', 4: '|',}
 
+# direction of travel
 # направление движения
 ROUT = [-1, 1]
 
 # make game FIELD
+# создаём игровое поле
 FIELD = [0]
 
+# game status
 # статус игры
 GAME_STATUS = [0]
 
+# coefficient for the number of blocks
 # коэфициент отвечающий за количество блоков
 AMOUNT = 5
 
 
 def add_point(POINT_YX):
     '''
+    initial placement of the point
     первичное размещение точки
     '''
     y, x = map(int, POINT_YX)
@@ -75,6 +96,7 @@ def add_point(POINT_YX):
 
 def make_field():
     '''
+    This creates a playing field
     Здесь создаётся игровое поле о всеми вытекающими
     '''
     FIELD.clear()
@@ -86,23 +108,28 @@ def make_field():
         fl = array('b', [POINT * i for i in range(WIDTH)])
         FIELD.append(fl)
 
+    # top line turn into a fence
     #  верхнюю строчку превращаем в заборчик
     FIELD[0] = array('b', [3 for i in range(WIDTH)])
 
+    # the bottom line turn into lava!
     #  ижняя строчку превращаем в лаву!
     FIELD[HIGHT - 1] = array('b', [6 for j in range(WIDTH)])
 
+    # left and right sides turn into columns
     # левую и правые стороны превращаем в столбики
     for y in range(1, HIGHT - 1):
         for x in (0, WIDTH - 1):
             FIELD[y][x] = 4
 
+    # create the blocks into which the ball will hit
     # создаём блоки в которые будет бится шар
     for y in range(1, AMOUNT):
         for x in range(1, WIDTH - 1):
             FIELD[y][x] = 2
 
     # make platform
+    # генерируем платформу
     for x in range(WIDTH // 2 - 6, WIDTH // 2 + 4):
         FIELD[HIGHT - 2][x] = 5
         PLATFORM.append([HIGHT - 2, x])
@@ -111,11 +138,21 @@ def make_field():
 
 
 def write_records(SCORE, name=getuser(), file_name='arkanoid_score.txt'):
-
+    '''
+    write the result in the file
+    записываем результат в файлик
+    '''
     with open(file_name, 'a') as record:
-        record.write('='.join(name, str(SCORE[0])))
+        date = ''.join([strftime('%H:%M %d.%m.%Y'), '\n'])
+        line = '='.join([name, str(SCORE[0]), date])
+        record.write(line)
+
 
 def read_records(file_name='arkanoid_score.txt'):
+    '''
+    get the best result
+    получаем лучший результат
+    '''
     max = 0
     with open(file_name, 'r') as record:
         for line in record:
@@ -123,31 +160,47 @@ def read_records(file_name='arkanoid_score.txt'):
                 max = int(line.split('=')[1])
         return max
 
+
 def start_game():
     '''
+    Creating a new game
     Создаём новую игру
     '''
 
+    # initial coordinates of the point 1 stack above the platform
     # начальные координаты точки на 1 стоку выше платформы
     POINT_YX[0], POINT_YX[1] = HIGHT - 4, WIDTH // 2
+
+    # initial motion vector
     # начальный вектор
     ROUT[0], ROUT[1] = -1, 1
-    # начальный результат
+
+    # reset the result to zero
+    # обнуляем результат
     SCORE[0] = 0
+
+    # generate the field  
     # генерируем поле
     make_field()
+
+    # put a dot in the field
     # ставим точку на поле
     add_point(POINT_YX)
 
     if GAME_STATUS[0] == 0:
         print_FIELD()
         game_name = 'Arkanoid v.1.2'
-        start_game_text = 'Для начала игры нажмите: Y'
-        exit_game_text = 'Для выхода нажмите любую клавишу '
+        start_game_text = 'To start the game, press: Y'
+        exit_game_text = 'To exit, press any key '
 
+        # to shorten the record
         # для сокращения записи
         H = HIGHT // 2
 
+        '''
+        Для вывода на экран текст, переводим курсор в нужное положение
+        To display the text on the screen, move the cursor to the desired position
+        '''
         if name == 'nt':
             move_cursor(H, WIDTH // 2 - len(game_name) // 2)
             stdout.write(game_name)
@@ -161,9 +214,14 @@ def start_game():
             stdout.write(exit_game_text)
             stdout.flush()
             key: str = input('  ')
-            move_cursor(HIGHT + 1, 0)  # переводим курсор ниже поля
+            '''
+            переводим курсор ниже поля, для того, что если откажется играть, текст выводилс ниже экрана
+            move the cursor below the field, so that if he refuses to play, the text will be displayed below the screen
+            '''
+            move_cursor(HIGHT + 1, 0)
 
         else:
+            # '\033[8;1H' translates the cursor to line 8, 1 column in Linux
             # '\033[8;1H' перевод курсора на 8 строку, 1 столбец в Linux
 
             W = WIDTH // 2 - len(game_name) // 2
@@ -188,13 +246,14 @@ def start_game():
 
 def end_game():
     '''
+    Responsible for quitting the game
     Отвечает за выход из игры
     '''
     game_over = 'Game over!'
-    end_game_text = f'Ваш результат: {SCORE[0]}'
-    end_game_q = 'Хотите сыграть ещё?'
-    for_new_game = 'Для начала новой игры нажмите Y'
-    for_exit_game = 'Eсли хотите выйти то любую клавишу   '
+    end_game_text = f'Your score: {SCORE[0]}'
+    end_game_q = 'Want to play again?'
+    for_new_game = 'To start a new game, press Y'
+    for_exit_game = 'If you want to exit, any key   '
 
     # '\033[8;1H'  f'\033[{8};{1}H'
     if name == 'nt':
@@ -228,7 +287,7 @@ def end_game():
         stdout.write(f'\033[{H + 4};{W}H')
         stdout.flush()
 
-    key: str = input('Хотите сыграть ещё раз? Y/N   ')
+    key: str = input('Would you like to play again? Y/N   ')
     stdout.flush()
     if key.upper() == 'Y':
         loop()
@@ -238,8 +297,13 @@ def end_game():
 
 
 def win():
+    '''
+    В случае победы
+    In the case of victory
+
+    '''
     win_text = 'You win!'
-    win_q = 'Хотите сыграть ещё раз? Y/N'
+    win_q = 'Would you like to play again? Y/N'
 
     H = HIGHT // 2
     W = WIDTH // 2 - len(win_q) // 2
@@ -438,7 +502,7 @@ def move():
         ROUT[1] = ROUT[1] * -1
         # устанавливаем новое положение х
         NEW_X = X + ROUT[1]
-        NEW_Y = Y + ROUT[0]                         # новое положение у
+        NEW_Y = Y + ROUT[0]                      # новое положение у
 
     else:
         # если нет припятсвий то летит дальше
