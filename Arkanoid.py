@@ -251,7 +251,7 @@ def end_game():
     '''
     game_over = 'Game over!'
     end_game_text = f'Your score: {SCORE[0]}'
-    end_game_q = 'Want to play again?'
+
     for_new_game = 'To start a new game, press Y'
     for_exit_game = 'If you want to exit, any key   '
 
@@ -265,10 +265,6 @@ def end_game():
         stdout.write(end_game_text)
         stdout.flush()
 
-        move_cursor((HIGHT // 2) + 3, WIDTH // 2 - len(end_game_q) // 2)
-        stdout.write(end_game_q)
-        stdout.flush()
-
         move_cursor((HIGHT // 2) + 4, WIDTH // 2 - len(for_new_game) // 2)
 
     else:
@@ -279,9 +275,6 @@ def end_game():
         stdout.flush()
 
         stdout.write(f'\033[{H + 2};{W}H' + end_game_text)
-        stdout.flush()
-
-        stdout.write(f'\033[{H + 3};{W}H' + end_game_q)
         stdout.flush()
 
         stdout.write(f'\033[{H + 4};{W}H')
