@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Arkanoid version 1.3
+Arkanoid version 1.3.1
 by Di2mot
 '''
 
@@ -214,6 +214,7 @@ def start_game():
             stdout.write(exit_game_text)
             stdout.flush()
             key: str = input('  ')
+
             '''
             переводим курсор ниже поля, для того, что если откажется играть, текст выводилс ниже экрана
             move the cursor below the field, so that if he refuses to play, the text will be displayed below the screen
@@ -345,7 +346,7 @@ def move_cursor(y, x):
     ctypes.windll.kernel32.SetConsoleCursorPosition(gHandle, c_ulong(value))
 
 
-def print_FIELD(start_time=0):
+def print_FIELD():
     '''
     Outputs the playing field to the console, overwriting it from top to bottom
     Go through the array and line by line preconvert into str() lines
@@ -356,12 +357,13 @@ def print_FIELD(start_time=0):
     После того как сформировали игровое поле, выодим на экран
     '''
 
-    move_cursor(0, 0)
-
-    FPS = 1 // (perf_counter() - start_time)
+    if name == 'nt':
+        move_cursor(0, 0)
+    else:
+        stdout.write('\033[0;0H')
 
     stdout.write(f'\
-        SCORE = {SCORE[0]}  FPS = {FPS}\n')
+        SCORE = {SCORE[0]}\n')
 
     # blank string in which the field will be added
     # заготовка строки в которую будет добавляться поле
@@ -575,7 +577,7 @@ def loop():
     start_game()
 
     while True:
-        start_time = perf_counter()
+
         print_FIELD(start_time)
         move()
         timed_input()
