@@ -491,7 +491,7 @@ def timed_input(timeout=0.1):
             while 1:                        
                 keycode = stdscr.getkey()
                 symbol = keys.get(keycode, (0, 0))
-
+                print_func('Hi')
                 move_platform(symbol)
                 stdout.flush()
 
