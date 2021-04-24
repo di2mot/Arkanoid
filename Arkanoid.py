@@ -595,7 +595,7 @@ def loop():
 
     while True:
 
-        print_FIELD(start_time)
+        print_FIELD()
         move()
         timed_input()
 
