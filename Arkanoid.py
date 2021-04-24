@@ -1,20 +1,25 @@
 # -*- coding: utf-8 -*-
 '''
-Arkanoid version 1.3.1
+Arkanoid version 1.4
 by Di2mot
 '''
 
 from time import perf_counter, monotonic, strftime
-from msvcrt import getch, kbhit
 from os import system, name
 from sys import stdout
 from array import array
 from getpass import getuser
 
 if name == 'nt':
+
+    from msvcrt import getch, kbhit
     import ctypes
     from ctypes import c_long, c_wchar_p, c_ulong, c_void_p
+
     gHandle = ctypes.windll.kernel32.GetStdHandle(c_long(-11))
+else:
+    import curses
+    stdscr = curses.initscr()
 
 
 # Size of the game FIELD
@@ -203,15 +208,15 @@ def start_game():
         '''
         if name == 'nt':
             move_cursor(H, WIDTH // 2 - len(game_name) // 2)
-            stdout.write(game_name)
+            print_func(game_name)
             stdout.flush()
 
             move_cursor(H + 2, WIDTH // 2 - len(start_game_text) // 2)
-            stdout.write(start_game_text)
+            print_func(start_game_text)
             stdout.flush()
 
             move_cursor(H + 3, WIDTH // 2 - len(exit_game_text) // 2)
-            stdout.write(exit_game_text)
+            print_func(exit_game_text)
             stdout.flush()
             key: str = input('  ')
 
@@ -227,15 +232,15 @@ def start_game():
 
             W = WIDTH // 2 - len(game_name) // 2
 
-            stdout.write(
+            print_func(
                 f'\033[{H};{W}H' + game_name)
             stdout.flush()
 
-            stdout.write(
+            print_func(
                 f'\033[{H + 2};{W}H' + game_name)
             stdout.flush()
 
-            stdout.write(
+            print_func(
                 f'\033[{H + 3};{W}H' + game_name)
             stdout.flush()
             key: str = input('  ')
@@ -259,11 +264,11 @@ def end_game():
     # '\033[8;1H'  f'\033[{8};{1}H'
     if name == 'nt':
         move_cursor(HIGHT // 2, WIDTH // 2 - len(game_over) // 2)
-        stdout.write(game_over)
+        print_func(game_over)
         stdout.flush()
 
         move_cursor((HIGHT // 2) + 2, WIDTH // 2 - len(end_game_text) // 2)
-        stdout.write(end_game_text)
+        print_func(end_game_text)
         stdout.flush()
 
         move_cursor((HIGHT // 2) + 4, WIDTH // 2 - len(for_new_game) // 2)
@@ -272,13 +277,13 @@ def end_game():
         H = HIGHT // 2
         W = WIDTH // 2 - len(game_over) // 2
 
-        stdout.write(f'\033[{H};{W}H' + game_over)
+        print_func(f'\033[{H};{W}H' + game_over)
         stdout.flush()
 
-        stdout.write(f'\033[{H + 2};{W}H' + end_game_text)
+        print_func(f'\033[{H + 2};{W}H' + end_game_text)
         stdout.flush()
 
-        stdout.write(f'\033[{H + 4};{W}H')
+        print_func(f'\033[{H + 4};{W}H')
         stdout.flush()
 
     key: str = input('Would you like to play again? Y/N   ')
@@ -304,17 +309,17 @@ def win():
 
     if name == 'nt':
         move_cursor(H, WIDTH // 2 - len(win_text) // 2)
-        stdout.write(win_text)
+        print_func(win_text)
         stdout.flush()
 
         move_cursor(H + 2, WIDTH // 2 - len(win_q) // 2)
-        stdout.write(win_q)
+        print_func(win_q)
         stdout.flush()
     else:
-        stdout.write(f'\033[{H};{W}H' + win_text)
+        print_func(f'\033[{H};{W}H' + win_text)
         stdout.flush()
 
-        stdout.write(f'\033[{H + 2};{W}H' + win_q)
+        print_func(f'\033[{H + 2};{W}H' + win_q)
         stdout.flush()
 
     key: str = input('Введите ответ   ')
@@ -345,6 +350,18 @@ def move_cursor(y, x):
     value = x + (y << 16)
     ctypes.windll.kernel32.SetConsoleCursorPosition(gHandle, c_ulong(value))
 
+def print_func(text: str):
+    '''
+    displays the text in the console.
+    It uses different methods for different operating systems
+    выводит в консоль текст.
+    Для разных ОС исользует разные способы
+    '''
+    if name == 'nt':
+        stdout.write(text)
+    else:
+        stdscr.addstr(text)
+
 
 def print_FIELD():
     '''
@@ -360,9 +377,9 @@ def print_FIELD():
     if name == 'nt':
         move_cursor(0, 0)
     else:
-        stdout.write('\033[0;0H')
+        print_func('\033[0;0H')
 
-    stdout.write(f'\
+    print_func(f'\
         SCORE = {SCORE[0]}\n')
 
     # blank string in which the field will be added
@@ -370,7 +387,7 @@ def print_FIELD():
     ST = str()
 
     for line in FIELD:
-
+        # works through string connotation
         # работает через коннотацию строк
         ST += ''.join(PRINT_MAP[e] for e in line) + '\n'
 
@@ -380,7 +397,7 @@ def print_FIELD():
         ctypes.windll.kernel32.WriteConsoleW(gHandle, c_wchar_p(
             ST), c_ulong(len(ST)), c_void_p(), None)
     else:
-        stdout.write(ST)
+        print_func(ST)
 
     stdout.flush()
 
