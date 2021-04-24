@@ -18,8 +18,14 @@ if name == 'nt':
 
     gHandle = ctypes.windll.kernel32.GetStdHandle(c_long(-11))
 else:
+    # for UNIX systems
     import curses
     stdscr = curses.initscr()
+    curses.cbreak()
+    stdscr.keypad(True)
+    curses.echo()
+    stdscr.nodelay(1)
+
 
 
 # Size of the game FIELD
@@ -360,7 +366,10 @@ def print_func(text: str):
     if name == 'nt':
         stdout.write(text)
     else:
-        stdscr.addstr(text)
+        try:
+            stdscr.addstr(text)
+        except curses.error:
+            pass
 
 
 def print_FIELD():
@@ -446,36 +455,45 @@ def timed_input(timeout=0.1):
 
     while monotonic() - start < timeout:
 
-        stdout.flush()
+        if name == 'nt':
 
-        if kbhit():
-            '''
-            getch() is called twice for a reason,
-            because the arrow control and the arrows, when pressed
-            generate two codes and, consequently, we have to
-            handle
+            stdout.flush()
 
-            getch() вызывается дважды не просто так,
-            т.к. управление стрелочками а стрелочки при нажатии
-            генерируют два кода, и соответственно нужно
-            дважды обрабатывать
-            '''
-            prefix = ord(getch())
-            if prefix == 0xe0:
-                stdout.flush()
-                keycode = ord(getch())
-                symbol = keys.get(keycode, [0, 0])
+            if kbhit():
+                '''
+                getch() is called twice for a reason,
+                because the arrow control and the arrows, when pressed
+                generate two codes and, consequently, we have to
+                handle
+
+                getch() вызывается дважды не просто так,
+                т.к. управление стрелочками а стрелочки при нажатии
+                генерируют два кода, и соответственно нужно
+                дважды обрабатывать
+                '''
+                prefix = ord(getch())
+                if prefix == 0xe0:
+                    stdout.flush()
+                    keycode = ord(getch())
+                    symbol = keys.get(keycode, [0, 0])
+
+                    move_platform(symbol)
+
+                # Responsible for the Ctrl + C combination
+                # Отвечает за комбинацию Ctrl + C
+                elif prefix == 3:
+                    stdout.flush()
+                    exit()
+                else:
+                    pass
+        else:
+            key=""
+            while 1:                        
+                keycode = stdscr.getkey()
+                symbol = keys.get(keycode, (0, 0))
 
                 move_platform(symbol)
-
-            # Responsible for the Ctrl + C combination
-            # Отвечает за комбинацию Ctrl + C
-            elif prefix == 3:
                 stdout.flush()
-                exit()
-            else:
-                pass
-
 
 def move():
     '''
