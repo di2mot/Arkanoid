@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Arkanoid version 1.4
+Arkanoid version 1.5
 by Di2mot
 '''
 
@@ -54,7 +54,9 @@ PLATFORM = [0]
 
 keys = {
     0x4b: (0, -1),
-    0x4d: (0, 1), }
+    0x4d: (0, 1),
+    'KEY_LEFT': (0, -1),
+    'KEY_RIGHT': (0, 1),  }
 '''
 0x48: 'Up' = -1,        0x48: (-1, 0)
 0x50: 'Down' = 1, 0     0x50: (1, 0)
@@ -171,6 +173,19 @@ def read_records(file_name='arkanoid_score.txt'):
                 max = int(line.split('=')[1])
         return max
 
+def exit_game():
+    '''
+    for exit from the game
+    '''
+    if name == 'nt':
+        move_cursor(0, 0)
+        exit()
+    else:
+        curses.nocbreak()
+        stdscr.keypad(False)
+        curses.echo()
+        curses.endwin()
+        exit()
 
 def start_game():
     '''
@@ -233,26 +248,24 @@ def start_game():
             move_cursor(HIGHT + 1, 0)
 
         else:
-            # '\033[8;1H' translates the cursor to line 8, 1 column in Linux
-            # '\033[8;1H' перевод курсора на 8 строку, 1 столбец в Linux
 
-            W = WIDTH // 2 - len(game_name) // 2
+            move_cursor(H, WIDTH // 2 - len(game_name) // 2)
+            print_func(game_name)
 
-            print_func(
-                f'\033[{H};{W}H' + game_name)
-            stdout.flush()
 
-            print_func(
-                f'\033[{H + 2};{W}H' + game_name)
-            stdout.flush()
+            move_cursor(H + 2, WIDTH // 2 - len(start_game_text) // 2)
+            print_func(start_game_text)
 
-            print_func(
-                f'\033[{H + 3};{W}H' + game_name)
-            stdout.flush()
-            key: str = input('  ')
+
+            move_cursor(H + 3, WIDTH // 2 - len(exit_game_text) // 2)
+            print_func(exit_game_text)
+
+            stdscr.nodelay(0)
+            key = stdscr.getkey()
+            stdscr.nodelay(1)
 
         if key.upper() != 'Y':
-            exit()
+            exit_game()
     GAME_STATUS[0] = 1
 
 
@@ -278,27 +291,30 @@ def end_game():
         stdout.flush()
 
         move_cursor((HIGHT // 2) + 4, WIDTH // 2 - len(for_new_game) // 2)
+        key: str = input('Would you like to play again? Y/N   ')
+        stdout.flush()
 
     else:
-        H = HIGHT // 2
-        W = WIDTH // 2 - len(game_over) // 2
+        move_cursor(HIGHT // 2, WIDTH // 2 - len(game_over) // 2)
+        print_func(game_over)
 
-        print_func(f'\033[{H};{W}H' + game_over)
-        stdout.flush()
 
-        print_func(f'\033[{H + 2};{W}H' + end_game_text)
-        stdout.flush()
+        move_cursor((HIGHT // 2) + 2, WIDTH // 2 - len(end_game_text) // 2)
+        print_func(end_game_text)
 
-        print_func(f'\033[{H + 4};{W}H')
-        stdout.flush()
 
-    key: str = input('Would you like to play again? Y/N   ')
-    stdout.flush()
+        move_cursor((HIGHT // 2) + 4, WIDTH // 2 - len(for_new_game) // 2)
+        print_func('Would you like to play again? Y/N   ')
+
+        stdscr.nodelay(0)
+        key = stdscr.getkey()
+        stdscr.nodelay(1)
+
+
     if key.upper() == 'Y':
         loop()
     else:
-        move_cursor(HIGHT + 1, 0)  # перводим курсор ниже поля
-        exit()
+        exit_game()
 
 
 def win():
@@ -321,20 +337,27 @@ def win():
         move_cursor(H + 2, WIDTH // 2 - len(win_q) // 2)
         print_func(win_q)
         stdout.flush()
+
+        key: str = input('Введите ответ   ')
+        stdout.flush()
+
     else:
-        print_func(f'\033[{H};{W}H' + win_text)
-        stdout.flush()
+        move_cursor(H, WIDTH // 2 - len(win_text) // 2)
+        print_func(win_text)
 
-        print_func(f'\033[{H + 2};{W}H' + win_q)
-        stdout.flush()
 
-    key: str = input('Введите ответ   ')
-    stdout.flush()
+        move_cursor(H + 2, WIDTH // 2 - len(win_q) // 2)
+        print_func(win_q)
+
+        stdscr.nodelay(0)
+        key = stdscr.getkey()
+        stdscr.nodelay(1)
+
+
     if key.upper() == 'Y':
         loop()
     else:
-        move_cursor(HIGHT + 1, 0)  # перводим курсор ниже поля
-        exit()
+        exit_game()
 
 
 def clear() -> None:
@@ -343,18 +366,20 @@ def clear() -> None:
     Очистка экрана
     '''
 
-    system('cls' if name == 'nt' else 'clear')
+    system('cls')
 
 
 def move_cursor(y, x):
     '''
-    Только под виндовс
     Переместить курсор в позицию, обозначенную x и y.
     Windows only. Move cursor to position indicated by x and y.
     Thanks to stackoverflow
     '''
-    value = x + (y << 16)
-    ctypes.windll.kernel32.SetConsoleCursorPosition(gHandle, c_ulong(value))
+    if name == 'nt':
+        value = x + (y << 16)
+        ctypes.windll.kernel32.SetConsoleCursorPosition(gHandle, c_ulong(value))
+    else:
+        stdscr.move(y, x)
 
 def print_func(text: str):
     '''
@@ -383,13 +408,9 @@ def print_FIELD():
     После того как сформировали игровое поле, выодим на экран
     '''
 
-    if name == 'nt':
-        move_cursor(0, 0)
-    else:
-        print_func('\033[0;0H')
+    move_cursor(0, 0)
 
-    print_func(f'\
-        SCORE = {SCORE[0]}\n')
+    print_func(f'SCORE = {SCORE[0]}\n')
 
     # blank string in which the field will be added
     # заготовка строки в которую будет добавляться поле
@@ -405,10 +426,11 @@ def print_FIELD():
     if name == 'nt':
         ctypes.windll.kernel32.WriteConsoleW(gHandle, c_wchar_p(
             ST), c_ulong(len(ST)), c_void_p(), None)
+        stdout.flush()
     else:
         print_func(ST)
 
-    stdout.flush()
+
 
 
 def move_platform(coord):
@@ -476,7 +498,6 @@ def timed_input(timeout=0.1):
                     stdout.flush()
                     keycode = ord(getch())
                     symbol = keys.get(keycode, [0, 0])
-
                     move_platform(symbol)
 
                 # Responsible for the Ctrl + C combination
@@ -488,12 +509,13 @@ def timed_input(timeout=0.1):
                     pass
         else:
             key=""
-            while 1:                        
+            try:                 
                 keycode = stdscr.getkey()
                 symbol = keys.get(keycode, (0, 0))
-                print_func('Hi')
                 move_platform(symbol)
-                stdout.flush()
+            except curses.error:
+                pass
+
 
 def move():
     '''
