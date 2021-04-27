@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 '''
-Arkanoid version 1.5
+Arkanoid version 1.6
 by Di2mot
 '''
+VERSION = 1.6
 
 from time import perf_counter, monotonic, strftime
 from os import system, name
@@ -26,12 +27,54 @@ else:
     curses.echo()
     stdscr.nodelay(1)
 
-
+import argparse
 
 # Size of the game FIELD
 # Размер игрового поля
 WIDTH = 100
 HIGHT = 20
+
+# coefficient for the number of blocks
+# коэфициент отвечающий за количество блоков
+AMOUNT = 5
+
+# parsing startup parameters from the command line
+# парсинг параметров запуска из командной строки
+argpars_text = '''
+Arkanoid by Di2mot
+
+A small simple game in Python, without external modules. 
+To set the parameters of the playing field, call the script with these parameters:
+python Arkanoid.py --h=20 --w=100 --a=4
+Where:
+--h - height in lines
+ --w - width in columns
+ --a - number of lines in blocks
+'''
+
+parser = argparse.ArgumentParser(description=argpars_text)
+parser.add_argument(
+    '--h',
+    type=int,
+    default=HIGHT,
+    help='height in lines'
+)
+parser.add_argument(
+    '--w',
+    type=int,
+    default=WIDTH,
+    help='width in columns'
+)
+parser.add_argument(
+    '--a',
+    type=int,
+    default=AMOUNT,
+    help='block rows'
+)
+my_namespace = parser.parse_args()
+
+HIGHT, WIDTH, AMOUNT = my_namespace.h, my_namespace.w, my_namespace.a
+
 
 '''
  what the playing field is made up of
@@ -93,9 +136,6 @@ FIELD = [0]
 # статус игры
 GAME_STATUS = [0]
 
-# coefficient for the number of blocks
-# коэфициент отвечающий за количество блоков
-AMOUNT = 5
 
 
 def add_point(POINT_YX):
@@ -178,7 +218,7 @@ def exit_game():
     for exit from the game
     '''
     if name == 'nt':
-        move_cursor(0, 0)
+        move_cursor(HIGHT + 1, 0)
         exit()
     else:
         curses.nocbreak()
@@ -215,7 +255,7 @@ def start_game():
 
     if GAME_STATUS[0] == 0:
         print_FIELD()
-        game_name = 'Arkanoid v.1.2'
+        game_name = f'Arkanoid v.{VERSION}'
         start_game_text = 'To start the game, press: Y'
         exit_game_text = 'To exit, press any key '
 
@@ -242,8 +282,10 @@ def start_game():
             key: str = input('  ')
 
             '''
-            переводим курсор ниже поля, для того, что если откажется играть, текст выводилс ниже экрана
-            move the cursor below the field, so that if he refuses to play, the text will be displayed below the screen
+            переводим курсор ниже поля, для того, что если откажется играть, 
+            текст выводилс ниже экрана
+            move the cursor below the field, so that if he refuses to play, 
+            the text will be displayed below the screen
             '''
             move_cursor(HIGHT + 1, 0)
 
