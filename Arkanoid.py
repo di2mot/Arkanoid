@@ -25,7 +25,7 @@ else:
     curses.cbreak()
     stdscr.keypad(True)
     curses.echo()
-    stdscr.nodelay(1)
+    stdscr.nodelay(True)
 
 import argparse
 
@@ -47,7 +47,7 @@ A small simple game in Python, without external modules.
 To set the parameters of the playing field, call the script with these parameters:
 python Arkanoid.py --h=20 --w=100 --a=4
 Where:
---h - height in lines
+ --h - height in lines
  --w - width in columns
  --a - number of lines in blocks
 '''
@@ -77,7 +77,7 @@ HIGHT, WIDTH, AMOUNT = my_namespace.h, my_namespace.w, my_namespace.a
 
 
 '''
- what the playing field is made up of
+ what the playing field is made up
  only numbers, strings are not!
  из чего состоит игровое поле
  только цифры, строки конноктирует!
@@ -94,7 +94,6 @@ PLATFORM = [0]
 
 # Keymap of control
 # коды клавиш
-
 keys = {
     0x4b: (0, -1),
     0x4d: (0, 1),
@@ -122,7 +121,7 @@ PRINT_MAP = {
     4: '|',
     5: '█',
     6: '=',
-}  # {0: '░', 1: '█', 2:'▢', 3: '-', 4: '|',}
+}
 
 # direction of travel
 # направление движения
@@ -262,23 +261,22 @@ def start_game():
         # to shorten the record
         # для сокращения записи
         H = HIGHT // 2
+        W = WIDTH // 2
 
         '''
         Для вывода на экран текст, переводим курсор в нужное положение
         To display the text on the screen, move the cursor to the desired position
         '''
+        move_cursor(H, W - len(game_name) // 2)
+        print_func(game_name)
+
+        move_cursor(H + 2, W - len(start_game_text) // 2)
+        print_func(start_game_text)
+
+        move_cursor(H + 3, W - len(exit_game_text) // 2)
+        print_func(exit_game_text)
+
         if name == 'nt':
-            move_cursor(H, WIDTH // 2 - len(game_name) // 2)
-            print_func(game_name)
-            stdout.flush()
-
-            move_cursor(H + 2, WIDTH // 2 - len(start_game_text) // 2)
-            print_func(start_game_text)
-            stdout.flush()
-
-            move_cursor(H + 3, WIDTH // 2 - len(exit_game_text) // 2)
-            print_func(exit_game_text)
-            stdout.flush()
             key: str = input('  ')
 
             '''
@@ -290,21 +288,9 @@ def start_game():
             move_cursor(HIGHT + 1, 0)
 
         else:
-
-            move_cursor(H, WIDTH // 2 - len(game_name) // 2)
-            print_func(game_name)
-
-
-            move_cursor(H + 2, WIDTH // 2 - len(start_game_text) // 2)
-            print_func(start_game_text)
-
-
-            move_cursor(H + 3, WIDTH // 2 - len(exit_game_text) // 2)
-            print_func(exit_game_text)
-
-            stdscr.nodelay(0)
+            stdscr.nodelay(False)
             key = stdscr.getkey()
-            stdscr.nodelay(1)
+            stdscr.nodelay(True)
 
         if key.upper() != 'Y':
             exit_game()
@@ -319,39 +305,25 @@ def end_game():
     game_over = 'Game over!'
     end_game_text = f'Your score: {SCORE[0]}'
 
-    for_new_game = 'To start a new game, press Y'
-    for_exit_game = 'If you want to exit, any key   '
+    for_new_game = 'Would you like to play again? Y/N   '
 
-    # '\033[8;1H'  f'\033[{8};{1}H'
+    move_cursor(HIGHT // 2, WIDTH // 2 - len(game_over) // 2)
+    print_func(game_over)
+
+    move_cursor((HIGHT // 2) + 2, WIDTH // 2 - len(end_game_text) // 2)
+    print_func(end_game_text)
+
+    move_cursor((HIGHT // 2) + 4, WIDTH // 2 - len(for_new_game) // 2)
+    print_func(for_new_game)
+
     if name == 'nt':
-        move_cursor(HIGHT // 2, WIDTH // 2 - len(game_over) // 2)
-        print_func(game_over)
-        stdout.flush()
-
-        move_cursor((HIGHT // 2) + 2, WIDTH // 2 - len(end_game_text) // 2)
-        print_func(end_game_text)
-        stdout.flush()
-
-        move_cursor((HIGHT // 2) + 4, WIDTH // 2 - len(for_new_game) // 2)
-        key: str = input('Would you like to play again? Y/N   ')
-        stdout.flush()
+        key: str = input()
 
     else:
-        move_cursor(HIGHT // 2, WIDTH // 2 - len(game_over) // 2)
-        print_func(game_over)
-
-
-        move_cursor((HIGHT // 2) + 2, WIDTH // 2 - len(end_game_text) // 2)
-        print_func(end_game_text)
-
-
-        move_cursor((HIGHT // 2) + 4, WIDTH // 2 - len(for_new_game) // 2)
-        print_func('Would you like to play again? Y/N   ')
-
-        stdscr.nodelay(0)
+        # for UNIX
+        stdscr.nodelay(False)
         key = stdscr.getkey()
-        stdscr.nodelay(1)
-
+        stdscr.nodelay(True)
 
     if key.upper() == 'Y':
         loop()
@@ -361,39 +333,31 @@ def end_game():
 
 def win():
     '''
-    В случае победы
     In the case of victory
-
+    В случае победы
     '''
+
     win_text = 'You win!'
     win_q = 'Would you like to play again? Y/N'
 
     H = HIGHT // 2
     W = WIDTH // 2 - len(win_q) // 2
 
+    move_cursor(H, W - len(win_text) // 2)
+    print_func(win_text)
+
+
+    move_cursor(H + 2, W - len(win_q) // 2)
+    print_func(win_q)
+
     if name == 'nt':
-        move_cursor(H, WIDTH // 2 - len(win_text) // 2)
-        print_func(win_text)
-        stdout.flush()
+        key: str = input()
 
-        move_cursor(H + 2, WIDTH // 2 - len(win_q) // 2)
-        print_func(win_q)
-        stdout.flush()
-
-        key: str = input('Введите ответ   ')
-        stdout.flush()
 
     else:
-        move_cursor(H, WIDTH // 2 - len(win_text) // 2)
-        print_func(win_text)
-
-
-        move_cursor(H + 2, WIDTH // 2 - len(win_q) // 2)
-        print_func(win_q)
-
-        stdscr.nodelay(0)
+        stdscr.nodelay(False)
         key = stdscr.getkey()
-        stdscr.nodelay(1)
+        stdscr.nodelay(True)
 
 
     if key.upper() == 'Y':
@@ -432,6 +396,7 @@ def print_func(text: str):
     '''
     if name == 'nt':
         stdout.write(text)
+        stdout.flush()
     else:
         try:
             stdscr.addstr(text)
@@ -551,7 +516,7 @@ def timed_input(timeout=0.1):
                     pass
         else:
             key=""
-            try:                 
+            try:
                 keycode = stdscr.getkey()
                 symbol = keys.get(keycode, (0, 0))
                 move_platform(symbol)
