@@ -16,7 +16,6 @@ if name == 'nt':
     from msvcrt import getch, kbhit
     import ctypes
     from ctypes import c_long, c_wchar_p, c_ulong, c_void_p
-
     gHandle = ctypes.windll.kernel32.GetStdHandle(c_long(-11))
 else:
     # for UNIX systems
@@ -98,7 +97,7 @@ keys = {
     0x4b: (0, -1),
     0x4d: (0, 1),
     'KEY_LEFT': (0, -1),
-    'KEY_RIGHT': (0, 1),  }
+    'KEY_RIGHT': (0, 1), }
 '''
 0x48: 'Up' = -1,        0x48: (-1, 0)
 0x50: 'Down' = 1, 0     0x50: (1, 0)
@@ -341,7 +340,7 @@ def win():
     win_q = 'Would you like to play again? Y/N'
 
     H = HIGHT // 2
-    W = WIDTH // 2 - len(win_q) // 2
+    W = WIDTH // 2
 
     move_cursor(H, W - len(win_text) // 2)
     print_func(win_text)
@@ -383,7 +382,8 @@ def move_cursor(y, x):
     '''
     if name == 'nt':
         value = x + (y << 16)
-        ctypes.windll.kernel32.SetConsoleCursorPosition(gHandle, c_ulong(value))
+        ctypes.windll.kernel32.SetConsoleCursorPosition(
+            gHandle, c_ulong(value))
     else:
         stdscr.move(y, x)
 
@@ -515,7 +515,6 @@ def timed_input(timeout=0.1):
                 else:
                     pass
         else:
-            key=""
             try:
                 keycode = stdscr.getkey()
                 symbol = keys.get(keycode, (0, 0))
@@ -565,7 +564,7 @@ def move():
         # если попало в правую часть платформы
         if PL_index > len(PLATFORM) // 2:
             ROUT[1] = 1
-        
+
         # if hit on the left side of the platform       
         # если попало в левую часть платформы
         else:
