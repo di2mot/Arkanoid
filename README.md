@@ -6,8 +6,13 @@
 
 A small simple game in Python, without external modules. 
 To set the parameters of the playing field, call the script with these parameters:
+ 
+ For Windows OS
+`python Arkanoid.py --h=20 --w=100 --a=4` or `python Arkanoid.py`
 
-`python Arkanoid.py --h=20 --w=100 --a=4`
+for Linux:
+`python3 Arkanoid.py --h=20 --w=100 --a=4` or `python3 Arkanoid.py`
+
 
 Where:
  --h - height in lines
