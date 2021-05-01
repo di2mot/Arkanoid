@@ -14,10 +14,10 @@ To set the parameters of the playing field, call the script with these parameter
 `python3 Arkanoid.py --h=20 --w=100 --a=4` or `python3 Arkanoid.py`
 
 
-Where:
- --h - height in lines
- --w - width in columns
- --a - number of lines in blocks
+#### Where:
+#### `--h` - height in lines
+#### `--w` - width in columns
+#### `--a` - number of lines of blocks
 
 ## License
 
