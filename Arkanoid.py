@@ -48,7 +48,7 @@ python Arkanoid.py --h=20 --w=100 --a=4
 Where:
  --h - height in lines
  --w - width in columns
- --a - number of lines in blocks
+ --a - number of lines of blocks
 '''
 
 parser = argparse.ArgumentParser(description=argpars_text)
@@ -589,7 +589,7 @@ def move():
         ROUT[0] = ROUT[0] * -1
         NEW_Y = Y + ROUT[0]
 
-        if FIELD[NEW_Y][X + ROUT[1]] not in (3, 4):
+        if FIELD[NEW_Y][X + ROUT[1]] not in (3, 4, 6):
             NEW_X = X + ROUT[1]
         else:
             ROUT[1] = ROUT[1] * -1
