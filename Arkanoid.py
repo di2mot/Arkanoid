@@ -135,7 +135,6 @@ FIELD = [0]
 GAME_STATUS = [0]
 
 
-
 def add_point(POINT_YX):
     '''
     initial placement of the point
@@ -211,6 +210,7 @@ def read_records(file_name='arkanoid_score.txt'):
                 max = int(line.split('=')[1])
         return max
 
+
 def exit_game():
     '''
     for exit from the game
@@ -224,6 +224,7 @@ def exit_game():
         curses.echo()
         curses.endwin()
         exit()
+
 
 def start_game():
     '''
@@ -345,19 +346,16 @@ def win():
     move_cursor(H, W - len(win_text) // 2)
     print_func(win_text)
 
-
     move_cursor(H + 2, W - len(win_q) // 2)
     print_func(win_q)
 
     if name == 'nt':
         key: str = input()
 
-
     else:
         stdscr.nodelay(False)
         key = stdscr.getkey()
         stdscr.nodelay(True)
-
 
     if key.upper() == 'Y':
         loop()
@@ -386,6 +384,7 @@ def move_cursor(y, x):
             gHandle, c_ulong(value))
     else:
         stdscr.move(y, x)
+
 
 def print_func(text: str):
     '''
@@ -436,8 +435,6 @@ def print_FIELD():
         stdout.flush()
     else:
         print_func(ST)
-
-
 
 
 def move_platform(coord):
@@ -565,7 +562,7 @@ def move():
         if PL_index > len(PLATFORM) // 2:
             ROUT[1] = 1
 
-        # if hit on the left side of the platform       
+        # if hit on the left side of the platform
         # если попало в левую часть платформы
         else:
             ROUT[1] = -1
