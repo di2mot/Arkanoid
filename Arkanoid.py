@@ -302,18 +302,21 @@ def end_game():
     Responsible for quitting the game
     Отвечает за выход из игры
     '''
+    H = HIGHT // 2
+    W = WIDTH // 2
+
     game_over = 'Game over!'
     end_game_text = f'Your score: {SCORE[0]}'
 
     for_new_game = 'Would you like to play again? Y/N   '
 
-    move_cursor(HIGHT // 2, WIDTH // 2 - len(game_over) // 2)
+    move_cursor(H, W - len(game_over) // 2)
     print_func(game_over)
 
-    move_cursor((HIGHT // 2) + 2, WIDTH // 2 - len(end_game_text) // 2)
+    move_cursor(H + 2, W - len(end_game_text) // 2)
     print_func(end_game_text)
 
-    move_cursor((HIGHT // 2) + 4, WIDTH // 2 - len(for_new_game) // 2)
+    move_cursor(H + 4, W - len(for_new_game) // 2)
     print_func(for_new_game)
 
     if name == 'nt':
@@ -335,6 +338,7 @@ def win():
     '''
     In the case of victory
     В случае победы
+
     '''
 
     win_text = 'You win!'
