@@ -631,7 +631,9 @@ def move():
     POINT_YX[0], POINT_YX[1] = NEW_Y, NEW_X
 
 
-def loop():
+def loop(HIGHT=my_namespace.h,
+         WIDTH=my_namespace.w,
+         AMOUNT=my_namespace.a):
     '''
     Main cycle
     Главный цикл
